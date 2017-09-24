@@ -1,0 +1,2 @@
+slipstream-api
+pycrypto
