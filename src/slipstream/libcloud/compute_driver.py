@@ -44,7 +44,6 @@ from slipstream.api import Api
 have_pycrypto = True
 try:
     from Crypto.PublicKey import RSA
-    # import pycrypto_patch
 except ImportError:
     have_pycrypto = False
 
@@ -59,6 +58,13 @@ class VirtualMachine(Node):
     pass
 
 class SlipStreamNodeDriver(NodeDriver):
+
+    """
+    SlipStream node driver
+
+    Note: This driver manage KeyPair in a slighty different way than others.
+          All configured key pairs are added to VMs at the creation of VMs.
+    """
 
     name = 'SlipStream'
     type = 'slipstream'
@@ -94,14 +100,47 @@ class SlipStreamNodeDriver(NodeDriver):
 
     def __init__(self, key, secret=None, secure=True, host='nuv.la', port=None,
                  api_version=None, **kwargs):
+        """
+        Instanciate a SlipStream node driver.
 
-        #super(NodeDriver, self).__init__(key=key, secret=secret, secure=secure,
-        #                                 host=host, port=port,
-        #                                 api_version=api_version, **kwargs)
-       
+        @inherits:  :class:`NodeDriver.__init__`
+
+        :param      key:  Username or API key
+        :type       key:  ``str``
+
+        :param      secret:  Password or Secret key
+        :type       secret:  ``str``
+
+        :param      secure:  Use secure (HTTPS) connection
+        :type       secure:  ``bool``
+
+        :param      host:  Hostname of the SlipStream endpoint (default: nuv.la)
+        :type       host:  ``str``
+
+        :param      port:  Port of the SlipStream endpoint (default: 443 if secure else 80)
+        :type       port:  ``int``
+
+        :param      api_version:  [Unused]
+        :type       api_version:  ``str``
+
+        :keyword    ex_endpoint:  The SlipStream endpoint (example: https://nuv.la)
+        :type       ex_endpoint:  ``str``
+
+        :keyword    ex_cookie_file:  Path to a existing cookie file to use instead of key and secret
+        :type       ex_cookie_file:  ``str``
+
+        :keyword    ex_login_method:  Login method (internal for username/password and api-key for key/secret)
+        :type       ex_login_method:  ``str``
+        
+        :keyword    ex_login_parameters: Extra parameters to provide to the login method
+        :type       ex_login_parameters: ``dict``
+        """
+        
         insecure = not secure
         endpoint = kwargs.get('ex_endpoint')
-        cookie_file = kwargs.get('cookie_file')
+        cookie_file = kwargs.get('ex_cookie_file')
+        login_method = kwargs.get('ex_login_method', 'internal')
+        login_parameters = kwargs.get('ex_login_parameters', {})
 
         if not endpoint:
             scheme = 'https' if secure else 'http'
@@ -113,17 +152,56 @@ class SlipStreamNodeDriver(NodeDriver):
                           insecure=insecure)
                           
         if not cookie_file:
-            self.ss_api.login(key, secret)
+            login_params = {}
+            
+            if login_parameters:
+                login_params.update(login_parameters)
+                
+            if login_method:
+                login_params['href'] = 'session-template/{}'.format(login_method)
+                
+                if login_method == 'internal':
+                    if key:
+                        login_params['username'] = key
+                    if secret:
+                        login_params['password'] = secret
+                        
+                elif login_method == 'api-key':
+                    if key:
+                        login_params['key'] = key
+                    if secret:
+                        login_params['secret'] = secret
+            
+            self.ss_api.login(login_params)
 
     def list_nodes(self):
+        """
+        List Nodes (SlipStream deployments)
+
+        @inherits:  :class:`NodeDriver.list_nodes
+
+        :return:    List of node objects
+        :rtype:     ``list`` of :class:`Node`
+        """
         deployments = self.ss_api.list_deployments()
         return [self._deployment_to_node(depl) for depl in deployments]
 
     def list_sizes(self, location=None):
+        """
+        List Sizes (SlipStream service offers)
+
+        @inherits:  :class:`NodeDriver.list_sizes
+
+        :param    location:  Return only sizes for the specified location
+        :type     location:  :class:`NodeLocation`
+
+        :return:  List of node size objects
+        :rtype:   ``list`` of :class:`.NodeSize`
+        """
         filter = 'resource:type="VM"'
         
         if location:
-            filter += ' and connector/href = "{}"'.format(location)
+            filter += ' and connector/href = "{}"'.format(location.name)
         
         service_offers = self.ss_api.cimi_search('serviceOffers', filter=filter)
 
@@ -131,9 +209,88 @@ class SlipStreamNodeDriver(NodeDriver):
                 for so in service_offers.json.get('serviceOffers', [])]
 
     def list_locations(self):
-        return list(self.ss_api.get_user().configured_clouds)
+        """
+        List Locations (SlipStream cloud connectors)
+
+        @inherits:  :class:`NodeDriver.list_locations
+
+        :return:  List of node location objects
+        :rtype:   ``list`` of :class:`NodeLocation`
+        """
+        return [self._cloud_to_location(cloud)
+                for cloud in self.ss_api.get_user().configured_clouds]
 
     def create_node(self, **kwargs):
+        """Create a new Node (deploy an application or a component)
+
+        @inherits:  :class:`NodeDriver.create_node
+
+        :keyword  name:  Name of the node (set as a SlipStream Tag). (optional)
+        :type     name:  ``str``
+
+        :keyword  size:  Size of Cloud resources (SlipStream serviec offer). (optional)
+                         If not provided the default of each VM will be used.
+                         If provided the size will be applied to all VM.
+        :type     size:  :class:`NodeSize`
+
+        :keyword  image:  Image to deploy (SlipStream application or component). (required)
+        :type     image:  :class:`NodeImage`
+
+        :keyword  location:  Location where to create the node (SlipStream cloud). (optional)
+                             If provided all VM will be started in the specified location.
+                             If not provided the default location will be used.
+        :type     location:  :class:`NodeLocation`
+
+        :keyword  ex_tags:  List of tags that can be used to identify or annotate a node.
+        :type     ex_tags:  ``str`` or ``list``
+
+        :keyword  ex_cloud:  To be used instead of location to specify the Cloud name
+                             on which to start VMs.
+                             To deploy a component simply specify the Cloud name as a string.
+                             To deploy a deployment specify a dict with the nodenames as keys 
+                             and Cloud names as values.
+        :type     ex_cloud:  ``str`` or ``dict``
+
+        :keyword  ex_parameters:  Parameters to (re)define for this image.
+                           To redefine a parameter of a SlipStream application's node 
+                           use "<nodename>" as keys and dict of parameters as values.
+                           To redefine a parameter of a SlipStream component or 
+                           a global parameter use "<parametername>" as the key.
+        :type     ex_parameters:  ``dict``
+
+        :keyword  ex_keep_running:  [Only apply to SlipStream applications] 
+                                    Define when to terminate or not a deployment 
+                                    when it reach the 'Ready' state. 
+                                    If scalable is set to True, this value is ignored 
+                                    and it will behave as if it was set to 'always'.
+        :type     ex_keep_running:  'always' or 'never' or 'on-success' or 'on-error'
+
+        :keyword  ex_multiplicity:  [Only apply to SlipStream applications]
+                                    A dict to specify how many instances to start 
+                                    per application's node.
+                                    Application's sodenames as keys and number of 
+                                    instances to start as values.
+        :type     ex_multiplicity:  ``dict``
+
+        :keyword  ex_tolerate_failures:  [Only apply to SlipStream applications]
+                                         A dict to specify how many failures to tolerate
+                                         per application's node.
+                                         Nodenames as keys and number of failure to 
+                                         tolerate as values.
+        :type     ex_tolerate_failures:  ``dict``
+
+        :keyword  ex_check_ssh_key:  Set it to True if you want the SlipStream server 
+                                     to check if you have a public ssh key defined. 
+                                     Useful if you want to ensure you will have access to VMs.
+        :type     ex_check_ssh_key:  ``bool``
+
+        :keyword  ex_scalable:  [Only apply to SlipStream applications]
+        :type     ex_scalable:  True to start a scalable deployment. (default: False)
+
+        :return:  The newly created node.
+        :rtype:   :class:`Node`
+
+        """
         name = kwargs.get('name')
         size = kwargs.get('size')
         image = kwargs.get('image')
@@ -141,18 +298,38 @@ class SlipStreamNodeDriver(NodeDriver):
         
         tags = kwargs.get('ex_tags', [])
         cloud = kwargs.get('ex_cloud')
-        parameters = kwargs.get('ex_parameters')
+        parameters = kwargs.get('ex_parameters', {})
         keep_running = kwargs.get('ex_keep_running')
         multiplicity = kwargs.get('ex_multiplicity')
         tolerate_failures = kwargs.get('ex_tolerate_failures')
         check_ssh_key = kwargs.get('ex_check_ssh_key', False)
         scalable = kwargs.get('ex_scalable', False)
         
-        cloud = cloud or location
+        path = image.id
+        element = self.ss_api.get_element(path)
+        
+        if not cloud and location:
+            if element.type == 'application':
+                cloud = {}
+                for element_node in self.ss_api.get_application_nodes(path):
+                    cloud[element_node.name] = location.name
+            else:
+                cloud = location.name
+                
+        if size:
+            if element.type == 'application':
+                for app_node in self.ss_api.get_application_nodes(path):
+                    node_params = parameters.setdefault(element_node.name, {})
+                    if 'service-offer' not in node_params:
+                        node_params['service-offer'] = size.id
+            else:
+                if 'service-offer' not in parameters:
+                    parameters['service-offer'] = size.id
+        
         tags = [tags] if isinstance(tags, basestring) else tags
         tags = [name] + tags
 
-        return self.ss_api.deploy(path=image.id,
+        return self.ss_api.deploy(path=path,
                                   cloud=cloud,
                                   parameters=parameters,
                                   tags=tags,
@@ -163,39 +340,113 @@ class SlipStreamNodeDriver(NodeDriver):
                                   check_ssh_key=check_ssh_key)
 
     def destroy_node(self, node):
+        """"
+        Destroy a node.
+
+        :param    node:  The node to be destroyed
+        :type     node:  :class:`Node`
+
+        :return:  True if the destroy was successful, False otherwise.
+        :rtype:   ``bool``
+        """
         try:
             return self.ss_api.terminate(node.id)
         except Exception as e:
             warnings.warn('Exception while destroying node "{}": {}'
                           .format(node.name, 
-                                  traceback.format_exc, 
+                                  traceback.format_exc(),
                                   RuntimeWarning))
             return False
     
-    def list_images(self, location=None, path=None, recurse=False):
-        if path is None:
+    def list_images(self, location=None, ex_path=None, ex_recurse=False):
+        """ List images (SlipStream components and applications)
+
+        :param    location:  [NOT IMPLEMENTED] 
+                             Return only images for the specified location
+        :type     location:  :class:`NodeLocation`
+
+        :param    ex_path:  Path on which to search for images. (optional)
+                            If not provided it will list the content of the
+                            App Store.
+        :type     ex_path:  ``str``
+
+        :param    ex_recurse: Recurse into subprojects. (default: False)
+                              Setting this value to True can be expensive.
+
+        :return:  list of node image objects.
+        :rtype:   ``list`` of :class:`NodeImage`
+        """
+        if ex_path is None:
             elements = self.ss_api.list_applications()
         else:
-            path = path.lstrip('/')
-            elements = self.ss_api.list_project_content(path=path,
-                                                        recurse=recurse)
+            ex_path = ex_path.lstrip('/')
+            elements = self.ss_api.list_project_content(path=ex_path,
+                                                        recurse=ex_recurse)
         return [self._element_to_image(el)
                 for el in elements if el.type in ['component', 'application']]
 
     def delete_image(self, node_image):
-        return self.ss_api.delete_element(path=node_image.id)
+        """
+        Deletes a node image from a provider.
+
+        :param    node_image:  Node image object.
+        :type     node_image:  :class:`NodeImage`
+
+        :return:  ``True`` if delete_image was successful, ``False`` otherwise.
+        :rtype:   ``bool``
+        """
+        try:
+            return self.ss_api.delete_element(path=node_image.id)
+        except Exception as e:
+            warnings.warn('Exception while deleting image "{}": {}'
+                          .format(node.name,
+                                  traceback.format_exc(),
+                                  RuntimeWarning))
+        return False
 
     def get_image(self, image_id):
+        """
+        Get an image from it's image_id
+
+        :param    image_id:  Image ID (SlipStream path)
+        :type     image_id:  ``str``
+
+        :return:  NodeImage instance on success.
+        :rtype    :class:`NodeImage`:
+        """
         return self._element_to_image(self.ss_api.get_element(path=image_id))
 
     def list_key_pairs(self):
+        """
+        List all the available key pair objects.
+
+        :return:  List of configured key pairs
+        :rtype:   ``list`` of :class:`KeyPair` objects
+        """
         return [self._ssh_public_key_to_key_pair(kp)
                 for kp in self.ss_api.get_user().ssh_public_keys if kp]
 
     def get_key_pair(self, name):
+        """
+        Retrieve a single key pair.
+
+        :param    name:  Name of the key pair to retrieve.
+        :type     name:  ``str``
+
+        :return:  A key pair
+        :rtype:   :class:`KeyPair`
+        """
         return self._list_key_pairs_by_names().get(name)
 
     def create_key_pair(self, name):
+        """
+        Create a new key pair object.
+
+        This operation require a working PyCrypto installation with RSA object
+
+        :param name:    Key pair name.
+        :type name:     ``str``
+        """
         if not have_pycrypto:
             raise RuntimeError('create_key_pair require pyCrypto')
 
@@ -206,18 +457,23 @@ class SlipStreamNodeDriver(NodeDriver):
         key_pair = self._ssh_public_key_to_key_pair(public_key_openssh, name)
         key_pair.private_key = private_key_pem
         
-        #public_key_openssh_full = '{} {}'.format(public_key_openssh, name)
-        
         self._add_ssh_public_key(key_pair.public_key)
         
         return key_pair
-        
-        #return KeyPair(name=name,
-        #               fingerprint=None,
-        #               public_key=public_key_openssh_full,
-        #               private_key=private_key_pem)
 
     def import_key_pair_from_string(self, name, key_material):
+        """
+        Import a new public key from string.
+
+        :param    name:  Key pair name.
+        :type     name:  ``str``
+
+        :param    key_material:  Public key material.
+        :type     key_material:  ``str``
+
+        :return:  The key pair
+        :rtype:   :class:`KeyPair` object
+        """
         key_pair = self._ssh_public_key_to_key_pair(key_material, name)
         
         self._add_ssh_public_key(key_pair.public_key)
@@ -225,11 +481,29 @@ class SlipStreamNodeDriver(NodeDriver):
         return key_pair
         
     def import_key_pair_from_file(self, name, key_file_path):
+        """
+        Import a new public key from string.
+
+        :param    name:  Key pair name.
+        :type     name:  ``str``
+
+        :param    key_file_path:  Path to the public key file.
+        :type     key_file_path:  ``str``
+
+        :return:  The key pair
+        :rtype:   :class:`KeyPair` object
+        """
         with open(key_file_path, 'r') as f:
             ssh_public_key = f.read()
         return self.import_key_pair_from_string(name, ssh_public_key)
     
     def delete_key_pair(self, key_pair):
+        """
+        Delete an existing key pair.
+
+        :param    key_pair:  Key pair object.
+        :type     key_pair:  :class:`KeyPair`
+        """
         key_pairs = self._list_key_pairs_by_names()
         del key_pairs[key_pair.name]
         
@@ -238,13 +512,22 @@ class SlipStreamNodeDriver(NodeDriver):
         return self.ss_api.update_user(ssh_public_keys=ssh_public_keys)
 
     def ex_list_virtual_machines(self, location=None, node=None):
-        #deployment_id = node.id if node else None
-        #return list(self.ss_api.list_virtualmachines(deployment_id=deployment_id, cloud=location))
-        
+        """
+        List Virtual Machines (SlipStream virtual machines)
+
+        :param    location:  Return only virtual machines for the specified location
+        :type     location:  :class:`NodeLocation`
+
+        :param    node:  List VM belonging to the specified node
+        :type     node:  :class:`Node`
+
+        :return:    List of virtualmachine objects
+        :rtype:     ``list`` of :class:`VirtualMachine`
+        """
         filters = []
         
         if location:
-            filters.append('connector/href = "connector/{}"'.format(location))
+            filters.append('connector/href = "connector/{}"'.format(location.name))
             
         if node:
             filters.append('deployment/href = "run/{}"'.format(node.id))
@@ -259,6 +542,22 @@ class SlipStreamNodeDriver(NodeDriver):
     def _state_to_node_state(self, state):
         return self.NODE_STATE_MAP.get(state.lower(),
                                        NodeState.UNKNOWN)
+                                       
+    def _cloud_to_location(self, cloud):
+        country = None
+        try:
+            filter = 'resource:type="VM" and connector/href = "{}"'.format(cloud)
+            service_offer = self.ss_api.cimi_search('serviceOffers', 
+                                                    filter=filter, 
+                                                    end=1)
+            country = service_offer.json['serviceOffers'][0]['resource:country']
+        except Exception as e:
+            pass
+        
+        return NodeLocation(id='connector/{}'.format(cloud),
+                            name=cloud,
+                            country=country,
+                            driver=self)
                                        
     def _deployment_to_node(self, deployment):
         return Node(id=str(deployment.id),
@@ -355,17 +654,5 @@ from libcloud.compute.providers import set_driver
 set_driver('slipstream',
            'slipstream.libcloud.compute_driver',
            'SlipStreamNodeDriver')
-
-
-
-
-
-
-
-
-
-
-
-
 
 
