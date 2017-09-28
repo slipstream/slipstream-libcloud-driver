@@ -55,7 +55,11 @@ __all__ = [
 
 
 class VirtualMachine(Node):
+    """
+    A SlipStream Virtual Machine
+    """
     pass
+
 
 class SlipStreamNodeDriver(NodeDriver):
 
@@ -178,8 +182,6 @@ class SlipStreamNodeDriver(NodeDriver):
         """
         List Nodes (SlipStream deployments)
 
-        @inherits:  :class:`NodeDriver.list_nodes
-
         :return:    List of node objects
         :rtype:     ``list`` of :class:`Node`
         """
@@ -189,8 +191,6 @@ class SlipStreamNodeDriver(NodeDriver):
     def list_sizes(self, location=None):
         """
         List Sizes (SlipStream service offers)
-
-        @inherits:  :class:`NodeDriver.list_sizes
 
         :param    location:  Return only sizes for the specified location
         :type     location:  :class:`NodeLocation`
@@ -212,8 +212,6 @@ class SlipStreamNodeDriver(NodeDriver):
         """
         List Locations (SlipStream cloud connectors)
 
-        @inherits:  :class:`NodeDriver.list_locations
-
         :return:  List of node location objects
         :rtype:   ``list`` of :class:`NodeLocation`
         """
@@ -222,8 +220,6 @@ class SlipStreamNodeDriver(NodeDriver):
 
     def create_node(self, **kwargs):
         """Create a new Node (deploy an application or a component)
-
-        @inherits:  :class:`NodeDriver.create_node
 
         :keyword  name:  Name of the node (set as a SlipStream Tag). (optional)
         :type     name:  ``str``
@@ -412,7 +408,7 @@ class SlipStreamNodeDriver(NodeDriver):
         :type     image_id:  ``str``
 
         :return:  NodeImage instance on success.
-        :rtype    :class:`NodeImage`:
+        :rtype:   :class:`NodeImage`:
         """
         return self._element_to_image(self.ss_api.get_element(path=image_id))
 
