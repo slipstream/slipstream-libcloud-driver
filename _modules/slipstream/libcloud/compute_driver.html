@@ -1,0 +1,826 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>slipstream.libcloud.compute_driver &mdash; SlipStream Libcloud driver 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="SlipStream Libcloud driver 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../../../index.html" class="icon icon-home"> SlipStream Libcloud driver
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">SlipStream Libcloud driver</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>slipstream.libcloud.compute_driver</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for slipstream.libcloud.compute_driver</h1><div class="highlight"><pre>
+<span></span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright 2017 SixSq (http://sixsq.com/).</span>
+<span class="c1"># </span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"> Libcloud compute driver for SlipStream (http://sixsq.com/slipstream).</span>
+
+<span class="sd"> To use this driver please import this file and then use the usual</span>
+<span class="sd"> libcloud get_driver function.</span>
+
+<span class="sd"> import slipstream.libcloud.compute_driver</span>
+<span class="sd"> from libcloud.compute.providers import get_driver</span>
+<span class="sd"> </span>
+<span class="sd"> driver = get_driver(&#39;slipstream&#39;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="kn">from</span> <span class="nn">libcloud.compute.ssh</span> <span class="k">import</span> <span class="n">have_paramiko</span>
+<span class="kn">from</span> <span class="nn">libcloud.compute.base</span> <span class="k">import</span> <span class="n">NodeImage</span><span class="p">,</span> <span class="n">NodeSize</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">KeyPair</span>
+<span class="kn">from</span> <span class="nn">libcloud.compute.base</span> <span class="k">import</span> <span class="n">NodeAuthSSHKey</span><span class="p">,</span> <span class="n">NodeDriver</span>
+<span class="kn">from</span> <span class="nn">libcloud.compute.base</span> <span class="k">import</span> <span class="n">NodeLocation</span><span class="p">,</span> <span class="n">UuidMixin</span>
+<span class="kn">from</span> <span class="nn">libcloud.compute.base</span> <span class="k">import</span> <span class="n">StorageVolume</span>
+<span class="kn">from</span> <span class="nn">libcloud.compute.types</span> <span class="k">import</span> <span class="n">NodeState</span>
+<span class="kn">from</span> <span class="nn">libcloud.utils.networking</span> <span class="k">import</span> <span class="n">is_public_subnet</span>
+
+<span class="kn">from</span> <span class="nn">slipstream.api</span> <span class="k">import</span> <span class="n">Api</span>
+
+
+<span class="n">have_pycrypto</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">Crypto.PublicKey</span> <span class="k">import</span> <span class="n">RSA</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">have_pycrypto</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;VirtualMachine&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SlipStreamNodeDriver&#39;</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="VirtualMachine"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.VirtualMachine">[docs]</a><span class="k">class</span> <span class="nc">VirtualMachine</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A SlipStream Virtual Machine</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SlipStreamNodeDriver"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver">[docs]</a><span class="k">class</span> <span class="nc">SlipStreamNodeDriver</span><span class="p">(</span><span class="n">NodeDriver</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SlipStream node driver</span>
+
+<span class="sd">    Note: This driver manage KeyPair in a slighty different way than others.</span>
+<span class="sd">          All configured key pairs are added to VMs at the creation of VMs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;SlipStream&#39;</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;slipstream&#39;</span>
+    <span class="n">website</span> <span class="o">=</span> <span class="s1">&#39;https://sixsq.com/slipstream&#39;</span>
+
+    <span class="n">features</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;create_node&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+    <span class="n">NODE_STATE_MAP</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Deployment states</span>
+        <span class="s1">&#39;initializing&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">PENDING</span><span class="p">,</span>
+        <span class="s1">&#39;provisioning&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">REBOOTING</span><span class="p">,</span> <span class="c1">#STARTING,</span>
+        <span class="s1">&#39;executing&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">,</span> <span class="c1">#RECONFIGURING,</span>
+        <span class="s1">&#39;sendingReports&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">,</span> <span class="c1">#RECONFIGURING,</span>
+        <span class="s1">&#39;ready&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">,</span>
+        <span class="s1">&#39;finalizing&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">,</span> <span class="c1">#STOPPING,</span>
+        <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">TERMINATED</span><span class="p">,</span>
+        <span class="s1">&#39;aborted&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+        <span class="s1">&#39;cancelled&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">TERMINATED</span><span class="p">,</span>
+        <span class="c1"># VirtualMachine states</span>
+        <span class="s1">&#39;rebooting&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">REBOOTING</span><span class="p">,</span>
+        <span class="s1">&#39;poweroff&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">STOPPED</span><span class="p">,</span>
+        <span class="s1">&#39;running&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">,</span>
+        <span class="s1">&#39;stopped&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">STOPPED</span><span class="p">,</span>
+        <span class="s1">&#39;deleted&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">TERMINATED</span><span class="p">,</span>
+        <span class="s1">&#39;terminated&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">TERMINATED</span><span class="p">,</span>
+        <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+        <span class="s1">&#39;stopping&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">,</span>
+        <span class="s1">&#39;failed&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+        <span class="s1">&#39;pending&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">PENDING</span><span class="p">,</span>
+        <span class="s1">&#39;paused&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">PAUSED</span><span class="p">,</span>
+        <span class="s1">&#39;suspended&#39;</span><span class="p">:</span> <span class="n">NodeState</span><span class="o">.</span><span class="n">PAUSED</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">secret</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">secure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s1">&#39;nuv.la&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">api_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instanciate a SlipStream node driver.</span>
+
+<span class="sd">        @inherits:  :class:`NodeDriver.__init__`</span>
+
+<span class="sd">        :param      key:  Username or API key</span>
+<span class="sd">        :type       key:  ``str``</span>
+
+<span class="sd">        :param      secret:  Password or Secret key</span>
+<span class="sd">        :type       secret:  ``str``</span>
+
+<span class="sd">        :param      secure:  Use secure (HTTPS) connection</span>
+<span class="sd">        :type       secure:  ``bool``</span>
+
+<span class="sd">        :param      host:  Hostname of the SlipStream endpoint (default: nuv.la)</span>
+<span class="sd">        :type       host:  ``str``</span>
+
+<span class="sd">        :param      port:  Port of the SlipStream endpoint (default: 443 if secure else 80)</span>
+<span class="sd">        :type       port:  ``int``</span>
+
+<span class="sd">        :param      api_version:  [Unused]</span>
+<span class="sd">        :type       api_version:  ``str``</span>
+
+<span class="sd">        :keyword    ex_endpoint:  The SlipStream endpoint (example: https://nuv.la)</span>
+<span class="sd">        :type       ex_endpoint:  ``str``</span>
+
+<span class="sd">        :keyword    ex_cookie_file:  Path to a existing cookie file to use instead of key and secret</span>
+<span class="sd">        :type       ex_cookie_file:  ``str``</span>
+
+<span class="sd">        :keyword    ex_login_method:  Login method (internal for username/password and api-key for key/secret)</span>
+<span class="sd">        :type       ex_login_method:  ``str``</span>
+<span class="sd">        </span>
+<span class="sd">        :keyword    ex_login_parameters: Extra parameters to provide to the login method</span>
+<span class="sd">        :type       ex_login_parameters: ``dict``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">insecure</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">secure</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_endpoint&#39;</span><span class="p">)</span>
+        <span class="n">cookie_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_cookie_file&#39;</span><span class="p">)</span>
+        <span class="n">login_method</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_login_method&#39;</span><span class="p">,</span> <span class="s1">&#39;internal&#39;</span><span class="p">)</span>
+        <span class="n">login_parameters</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_login_parameters&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">endpoint</span><span class="p">:</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="s1">&#39;https&#39;</span> <span class="k">if</span> <span class="n">secure</span> <span class="k">else</span> <span class="s1">&#39;http&#39;</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port</span><span class="p">)</span> <span class="k">if</span> <span class="n">port</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">endpoint</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">://</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">scheme</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span> <span class="o">=</span> <span class="n">Api</span><span class="p">(</span><span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span> 
+                          <span class="n">cookie_file</span><span class="o">=</span><span class="n">cookie_file</span><span class="p">,</span>
+                          <span class="n">insecure</span><span class="o">=</span><span class="n">insecure</span><span class="p">)</span>
+                          
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cookie_file</span><span class="p">:</span>
+            <span class="n">login_params</span> <span class="o">=</span> <span class="p">{}</span>
+            
+            <span class="k">if</span> <span class="n">login_parameters</span><span class="p">:</span>
+                <span class="n">login_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">login_parameters</span><span class="p">)</span>
+                
+            <span class="k">if</span> <span class="n">login_method</span><span class="p">:</span>
+                <span class="n">login_params</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;session-template/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">login_method</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">login_method</span> <span class="o">==</span> <span class="s1">&#39;internal&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span><span class="p">:</span>
+                        <span class="n">login_params</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+                    <span class="k">if</span> <span class="n">secret</span><span class="p">:</span>
+                        <span class="n">login_params</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">secret</span>
+                        
+                <span class="k">elif</span> <span class="n">login_method</span> <span class="o">==</span> <span class="s1">&#39;api-key&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span><span class="p">:</span>
+                        <span class="n">login_params</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+                    <span class="k">if</span> <span class="n">secret</span><span class="p">:</span>
+                        <span class="n">login_params</span><span class="p">[</span><span class="s1">&#39;secret&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">secret</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">login_params</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.list_nodes"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">list_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List Nodes (SlipStream deployments)</span>
+
+<span class="sd">        :return:    List of node objects</span>
+<span class="sd">        :rtype:     ``list`` of :class:`Node`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">deployments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">list_deployments</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_deployment_to_node</span><span class="p">(</span><span class="n">depl</span><span class="p">)</span> <span class="k">for</span> <span class="n">depl</span> <span class="ow">in</span> <span class="n">deployments</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.list_sizes"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_sizes">[docs]</a>    <span class="k">def</span> <span class="nf">list_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List Sizes (SlipStream service offers)</span>
+
+<span class="sd">        :param    location:  Return only sizes for the specified location</span>
+<span class="sd">        :type     location:  :class:`NodeLocation`</span>
+
+<span class="sd">        :return:  List of node size objects</span>
+<span class="sd">        :rtype:   ``list`` of :class:`.NodeSize`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">filter</span> <span class="o">=</span> <span class="s1">&#39;resource:type=&quot;VM&quot;&#39;</span>
+        
+        <span class="k">if</span> <span class="n">location</span><span class="p">:</span>
+            <span class="nb">filter</span> <span class="o">+=</span> <span class="s1">&#39; and connector/href = &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">location</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        
+        <span class="n">service_offers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">cimi_search</span><span class="p">(</span><span class="s1">&#39;serviceOffers&#39;</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="nb">filter</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_service_offer_to_size</span><span class="p">(</span><span class="n">so</span><span class="p">)</span> 
+                <span class="k">for</span> <span class="n">so</span> <span class="ow">in</span> <span class="n">service_offers</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;serviceOffers&#39;</span><span class="p">,</span> <span class="p">[])]</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.list_locations"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_locations">[docs]</a>    <span class="k">def</span> <span class="nf">list_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List Locations (SlipStream cloud connectors)</span>
+
+<span class="sd">        :return:  List of node location objects</span>
+<span class="sd">        :rtype:   ``list`` of :class:`NodeLocation`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_to_location</span><span class="p">(</span><span class="n">cloud</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">cloud</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span><span class="o">.</span><span class="n">configured_clouds</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.create_node"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.create_node">[docs]</a>    <span class="k">def</span> <span class="nf">create_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new Node (deploy an application or a component)</span>
+
+<span class="sd">        :keyword  name:  Name of the node (set as a SlipStream Tag). (optional)</span>
+<span class="sd">        :type     name:  ``str``</span>
+
+<span class="sd">        :keyword  size:  Size of Cloud resources (SlipStream serviec offer). (optional)</span>
+<span class="sd">                         If not provided the default of each VM will be used.</span>
+<span class="sd">                         If provided the size will be applied to all VM.</span>
+<span class="sd">        :type     size:  :class:`NodeSize`</span>
+
+<span class="sd">        :keyword  image:  Image to deploy (SlipStream application or component). (required)</span>
+<span class="sd">        :type     image:  :class:`NodeImage`</span>
+
+<span class="sd">        :keyword  location:  Location where to create the node (SlipStream cloud). (optional)</span>
+<span class="sd">                             If provided all VM will be started in the specified location.</span>
+<span class="sd">                             If not provided the default location will be used.</span>
+<span class="sd">        :type     location:  :class:`NodeLocation`</span>
+
+<span class="sd">        :keyword  ex_tags:  List of tags that can be used to identify or annotate a node.</span>
+<span class="sd">        :type     ex_tags:  ``str`` or ``list``</span>
+
+<span class="sd">        :keyword  ex_cloud:  To be used instead of location to specify the Cloud name</span>
+<span class="sd">                             on which to start VMs.</span>
+<span class="sd">                             To deploy a component simply specify the Cloud name as a string.</span>
+<span class="sd">                             To deploy a deployment specify a dict with the nodenames as keys </span>
+<span class="sd">                             and Cloud names as values.</span>
+<span class="sd">        :type     ex_cloud:  ``str`` or ``dict``</span>
+
+<span class="sd">        :keyword  ex_parameters:  Parameters to (re)define for this image.</span>
+<span class="sd">                           To redefine a parameter of a SlipStream application&#39;s node </span>
+<span class="sd">                           use &quot;&lt;nodename&gt;&quot; as keys and dict of parameters as values.</span>
+<span class="sd">                           To redefine a parameter of a SlipStream component or </span>
+<span class="sd">                           a global parameter use &quot;&lt;parametername&gt;&quot; as the key.</span>
+<span class="sd">        :type     ex_parameters:  ``dict``</span>
+
+<span class="sd">        :keyword  ex_keep_running:  [Only apply to SlipStream applications] </span>
+<span class="sd">                                    Define when to terminate or not a deployment </span>
+<span class="sd">                                    when it reach the &#39;Ready&#39; state. </span>
+<span class="sd">                                    If scalable is set to True, this value is ignored </span>
+<span class="sd">                                    and it will behave as if it was set to &#39;always&#39;.</span>
+<span class="sd">        :type     ex_keep_running:  &#39;always&#39; or &#39;never&#39; or &#39;on-success&#39; or &#39;on-error&#39;</span>
+
+<span class="sd">        :keyword  ex_multiplicity:  [Only apply to SlipStream applications]</span>
+<span class="sd">                                    A dict to specify how many instances to start </span>
+<span class="sd">                                    per application&#39;s node.</span>
+<span class="sd">                                    Application&#39;s sodenames as keys and number of </span>
+<span class="sd">                                    instances to start as values.</span>
+<span class="sd">        :type     ex_multiplicity:  ``dict``</span>
+
+<span class="sd">        :keyword  ex_tolerate_failures:  [Only apply to SlipStream applications]</span>
+<span class="sd">                                         A dict to specify how many failures to tolerate</span>
+<span class="sd">                                         per application&#39;s node.</span>
+<span class="sd">                                         Nodenames as keys and number of failure to </span>
+<span class="sd">                                         tolerate as values.</span>
+<span class="sd">        :type     ex_tolerate_failures:  ``dict``</span>
+
+<span class="sd">        :keyword  ex_check_ssh_key:  Set it to True if you want the SlipStream server </span>
+<span class="sd">                                     to check if you have a public ssh key defined. </span>
+<span class="sd">                                     Useful if you want to ensure you will have access to VMs.</span>
+<span class="sd">        :type     ex_check_ssh_key:  ``bool``</span>
+
+<span class="sd">        :keyword  ex_scalable:  [Only apply to SlipStream applications]</span>
+<span class="sd">        :type     ex_scalable:  True to start a scalable deployment. (default: False)</span>
+
+<span class="sd">        :return:  The newly created node.</span>
+<span class="sd">        :rtype:   :class:`Node`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
+        
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_tags&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">cloud</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_cloud&#39;</span><span class="p">)</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_parameters&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">keep_running</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_keep_running&#39;</span><span class="p">)</span>
+        <span class="n">multiplicity</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_multiplicity&#39;</span><span class="p">)</span>
+        <span class="n">tolerate_failures</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_tolerate_failures&#39;</span><span class="p">)</span>
+        <span class="n">check_ssh_key</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_check_ssh_key&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">scalable</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ex_scalable&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        
+        <span class="n">path</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_element</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud</span> <span class="ow">and</span> <span class="n">location</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;application&#39;</span><span class="p">:</span>
+                <span class="n">cloud</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">element_node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_application_nodes</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                    <span class="n">cloud</span><span class="p">[</span><span class="n">element_node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">location</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cloud</span> <span class="o">=</span> <span class="n">location</span><span class="o">.</span><span class="n">name</span>
+                
+        <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;application&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">app_node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_application_nodes</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                    <span class="n">node_params</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">element_node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="k">if</span> <span class="s1">&#39;service-offer&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">node_params</span><span class="p">:</span>
+                        <span class="n">node_params</span><span class="p">[</span><span class="s1">&#39;service-offer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span><span class="o">.</span><span class="n">id</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;service-offer&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+                    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;service-offer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span><span class="o">.</span><span class="n">id</span>
+        
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">tags</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="k">else</span> <span class="n">tags</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">tags</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+                                  <span class="n">cloud</span><span class="o">=</span><span class="n">cloud</span><span class="p">,</span>
+                                  <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                                  <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
+                                  <span class="n">keep_running</span><span class="o">=</span><span class="n">keep_running</span><span class="p">,</span>
+                                  <span class="n">scalable</span><span class="o">=</span><span class="n">scalable</span><span class="p">,</span>
+                                  <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
+                                  <span class="n">tolerate_failures</span><span class="o">=</span><span class="n">tolerate_failures</span><span class="p">,</span>
+                                  <span class="n">check_ssh_key</span><span class="o">=</span><span class="n">check_ssh_key</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.destroy_node"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.destroy_node">[docs]</a>    <span class="k">def</span> <span class="nf">destroy_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="sd">        Destroy a node.</span>
+
+<span class="sd">        :param    node:  The node to be destroyed</span>
+<span class="sd">        :type     node:  :class:`Node`</span>
+
+<span class="sd">        :return:  True if the destroy was successful, False otherwise.</span>
+<span class="sd">        :rtype:   ``bool``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">terminate</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Exception while destroying node &quot;</span><span class="si">{}</span><span class="s1">&quot;: </span><span class="si">{}</span><span class="s1">&#39;</span>
+                          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
+                                  <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
+                                  <span class="ne">RuntimeWarning</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+    
+<div class="viewcode-block" id="SlipStreamNodeDriver.list_images"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_images">[docs]</a>    <span class="k">def</span> <span class="nf">list_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ex_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ex_recurse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; List images (SlipStream components and applications)</span>
+
+<span class="sd">        :param    location:  [NOT IMPLEMENTED] </span>
+<span class="sd">                             Return only images for the specified location</span>
+<span class="sd">        :type     location:  :class:`NodeLocation`</span>
+
+<span class="sd">        :param    ex_path:  Path on which to search for images. (optional)</span>
+<span class="sd">                            If not provided it will list the content of the</span>
+<span class="sd">                            App Store.</span>
+<span class="sd">        :type     ex_path:  ``str``</span>
+
+<span class="sd">        :param    ex_recurse: Recurse into subprojects. (default: False)</span>
+<span class="sd">                              Setting this value to True can be expensive.</span>
+
+<span class="sd">        :return:  list of node image objects.</span>
+<span class="sd">        :rtype:   ``list`` of :class:`NodeImage`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ex_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">list_applications</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ex_path</span> <span class="o">=</span> <span class="n">ex_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">list_project_content</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">ex_path</span><span class="p">,</span>
+                                                        <span class="n">recurse</span><span class="o">=</span><span class="n">ex_recurse</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_element_to_image</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elements</span> <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;application&#39;</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.delete_image"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.delete_image">[docs]</a>    <span class="k">def</span> <span class="nf">delete_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_image</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes a node image from a provider.</span>
+
+<span class="sd">        :param    node_image:  Node image object.</span>
+<span class="sd">        :type     node_image:  :class:`NodeImage`</span>
+
+<span class="sd">        :return:  ``True`` if delete_image was successful, ``False`` otherwise.</span>
+<span class="sd">        :rtype:   ``bool``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">delete_element</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">node_image</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Exception while deleting image &quot;</span><span class="si">{}</span><span class="s1">&quot;: </span><span class="si">{}</span><span class="s1">&#39;</span>
+                          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                  <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
+                                  <span class="ne">RuntimeWarning</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.get_image"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.get_image">[docs]</a>    <span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an image from it&#39;s image_id</span>
+
+<span class="sd">        :param    image_id:  Image ID (SlipStream path)</span>
+<span class="sd">        :type     image_id:  ``str``</span>
+
+<span class="sd">        :return:  NodeImage instance on success.</span>
+<span class="sd">        :rtype:   :class:`NodeImage`:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_to_image</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_element</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">image_id</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.list_key_pairs"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_key_pairs">[docs]</a>    <span class="k">def</span> <span class="nf">list_key_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List all the available key pair objects.</span>
+
+<span class="sd">        :return:  List of configured key pairs</span>
+<span class="sd">        :rtype:   ``list`` of :class:`KeyPair` objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ssh_public_key_to_key_pair</span><span class="p">(</span><span class="n">kp</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">kp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span><span class="o">.</span><span class="n">ssh_public_keys</span> <span class="k">if</span> <span class="n">kp</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.get_key_pair"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.get_key_pair">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve a single key pair.</span>
+
+<span class="sd">        :param    name:  Name of the key pair to retrieve.</span>
+<span class="sd">        :type     name:  ``str``</span>
+
+<span class="sd">        :return:  A key pair</span>
+<span class="sd">        :rtype:   :class:`KeyPair`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_key_pairs_by_names</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.create_key_pair"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.create_key_pair">[docs]</a>    <span class="k">def</span> <span class="nf">create_key_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new key pair object.</span>
+
+<span class="sd">        This operation require a working PyCrypto installation with RSA object</span>
+
+<span class="sd">        :param name:    Key pair name.</span>
+<span class="sd">        :type name:     ``str``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">have_pycrypto</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;create_key_pair require pyCrypto&#39;</span><span class="p">)</span>
+
+        <span class="n">rsa_keypair</span> <span class="o">=</span> <span class="n">RSA</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+        <span class="n">private_key_pem</span> <span class="o">=</span> <span class="n">rsa_keypair</span><span class="o">.</span><span class="n">exportKey</span><span class="p">()</span>
+        <span class="n">public_key_openssh</span> <span class="o">=</span> <span class="n">rsa_keypair</span><span class="o">.</span><span class="n">publickey</span><span class="p">()</span><span class="o">.</span><span class="n">exportKey</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;OpenSSH&#39;</span><span class="p">)</span>
+        
+        <span class="n">key_pair</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ssh_public_key_to_key_pair</span><span class="p">(</span><span class="n">public_key_openssh</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">key_pair</span><span class="o">.</span><span class="n">private_key</span> <span class="o">=</span> <span class="n">private_key_pem</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_ssh_public_key</span><span class="p">(</span><span class="n">key_pair</span><span class="o">.</span><span class="n">public_key</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">key_pair</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.import_key_pair_from_string"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.import_key_pair_from_string">[docs]</a>    <span class="k">def</span> <span class="nf">import_key_pair_from_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">key_material</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Import a new public key from string.</span>
+
+<span class="sd">        :param    name:  Key pair name.</span>
+<span class="sd">        :type     name:  ``str``</span>
+
+<span class="sd">        :param    key_material:  Public key material.</span>
+<span class="sd">        :type     key_material:  ``str``</span>
+
+<span class="sd">        :return:  The key pair</span>
+<span class="sd">        :rtype:   :class:`KeyPair` object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key_pair</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ssh_public_key_to_key_pair</span><span class="p">(</span><span class="n">key_material</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_ssh_public_key</span><span class="p">(</span><span class="n">key_pair</span><span class="o">.</span><span class="n">public_key</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">key_pair</span></div>
+        
+<div class="viewcode-block" id="SlipStreamNodeDriver.import_key_pair_from_file"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.import_key_pair_from_file">[docs]</a>    <span class="k">def</span> <span class="nf">import_key_pair_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">key_file_path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Import a new public key from string.</span>
+
+<span class="sd">        :param    name:  Key pair name.</span>
+<span class="sd">        :type     name:  ``str``</span>
+
+<span class="sd">        :param    key_file_path:  Path to the public key file.</span>
+<span class="sd">        :type     key_file_path:  ``str``</span>
+
+<span class="sd">        :return:  The key pair</span>
+<span class="sd">        :rtype:   :class:`KeyPair` object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">key_file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">ssh_public_key</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_key_pair_from_string</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ssh_public_key</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="SlipStreamNodeDriver.delete_key_pair"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.delete_key_pair">[docs]</a>    <span class="k">def</span> <span class="nf">delete_key_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_pair</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete an existing key pair.</span>
+
+<span class="sd">        :param    key_pair:  Key pair object.</span>
+<span class="sd">        :type     key_pair:  :class:`KeyPair`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_key_pairs_by_names</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">key_pairs</span><span class="p">[</span><span class="n">key_pair</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        
+        <span class="n">ssh_public_keys</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">kp</span><span class="o">.</span><span class="n">public_key</span> <span class="k">for</span> <span class="n">kp</span> <span class="ow">in</span> <span class="n">key_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">update_user</span><span class="p">(</span><span class="n">ssh_public_keys</span><span class="o">=</span><span class="n">ssh_public_keys</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.ex_list_virtual_machines"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_list_virtual_machines">[docs]</a>    <span class="k">def</span> <span class="nf">ex_list_virtual_machines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List Virtual Machines (SlipStream virtual machines)</span>
+
+<span class="sd">        :param    location:  Return only virtual machines for the specified location</span>
+<span class="sd">        :type     location:  :class:`NodeLocation`</span>
+
+<span class="sd">        :param    node:  List VM belonging to the specified node</span>
+<span class="sd">        :type     node:  :class:`Node`</span>
+
+<span class="sd">        :return:    List of virtualmachine objects</span>
+<span class="sd">        :rtype:     ``list`` of :class:`VirtualMachine`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">if</span> <span class="n">location</span><span class="p">:</span>
+            <span class="n">filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;connector/href = &quot;connector/</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">location</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            
+        <span class="k">if</span> <span class="n">node</span><span class="p">:</span>
+            <span class="n">filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;deployment/href = &quot;run/</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+            
+        <span class="nb">filter</span> <span class="o">=</span> <span class="s1">&#39; and &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+        
+        <span class="n">virtual_machines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">cimi_search</span><span class="p">(</span><span class="s1">&#39;virtualMachines&#39;</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="nb">filter</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_virtual_machine_to_node</span><span class="p">(</span><span class="n">vm</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">vm</span> <span class="ow">in</span> <span class="n">virtual_machines</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;virtualMachines&#39;</span><span class="p">,</span> <span class="p">[])]</span></div>
+
+    <span class="k">def</span> <span class="nf">_state_to_node_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">NODE_STATE_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                                       <span class="n">NodeState</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)</span>
+                                       
+    <span class="k">def</span> <span class="nf">_cloud_to_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud</span><span class="p">):</span>
+        <span class="n">country</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">filter</span> <span class="o">=</span> <span class="s1">&#39;resource:type=&quot;VM&quot; and connector/href = &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cloud</span><span class="p">)</span>
+            <span class="n">service_offer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">cimi_search</span><span class="p">(</span><span class="s1">&#39;serviceOffers&#39;</span><span class="p">,</span> 
+                                                    <span class="nb">filter</span><span class="o">=</span><span class="nb">filter</span><span class="p">,</span> 
+                                                    <span class="n">end</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">country</span> <span class="o">=</span> <span class="n">service_offer</span><span class="o">.</span><span class="n">json</span><span class="p">[</span><span class="s1">&#39;serviceOffers&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;resource:country&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+        <span class="k">return</span> <span class="n">NodeLocation</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;connector/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cloud</span><span class="p">),</span>
+                            <span class="n">name</span><span class="o">=</span><span class="n">cloud</span><span class="p">,</span>
+                            <span class="n">country</span><span class="o">=</span><span class="n">country</span><span class="p">,</span>
+                            <span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+                                       
+    <span class="k">def</span> <span class="nf">_deployment_to_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deployment</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Node</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">deployment</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">deployment</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+                    <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_to_node_state</span><span class="p">(</span><span class="n">deployment</span><span class="o">.</span><span class="n">status</span><span class="p">),</span>
+                    <span class="n">public_ips</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">private_ips</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">image</span><span class="o">=</span><span class="n">deployment</span><span class="o">.</span><span class="n">module</span><span class="p">,</span>
+                    <span class="c1">#created_at=deployment.started_at,</span>
+                    <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">deployment</span><span class="o">.</span><span class="n">_asdict</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">_service_offer_to_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service_offer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">NodeSize</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">service_offer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span>
+                        <span class="n">name</span><span class="o">=</span><span class="n">service_offer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span>
+                        <span class="n">ram</span><span class="o">=</span><span class="n">service_offer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resource:ram&#39;</span><span class="p">),</span>
+                        <span class="n">disk</span><span class="o">=</span><span class="n">service_offer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resource:disk&#39;</span><span class="p">),</span>
+                        <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">price</span><span class="o">=</span><span class="n">service_offer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;price:unitCost&#39;</span><span class="p">),</span>
+                        <span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                        <span class="n">extra</span><span class="o">=</span><span class="n">service_offer</span><span class="p">)</span>
+                        
+    <span class="k">def</span> <span class="nf">_element_to_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">NodeImage</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">version</span><span class="p">),</span>
+                         <span class="n">name</span><span class="o">=</span><span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                         <span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">_asdict</span><span class="p">()))</span>
+                         
+    <span class="k">def</span> <span class="nf">_virtual_machine_to_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">virtual_machine</span><span class="p">):</span>
+        <span class="n">ip</span> <span class="o">=</span> <span class="n">virtual_machine</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ip&#39;</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">virtual_machine</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+
+        <span class="n">public_ips</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">private_ips</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_public_subnet</span><span class="p">(</span><span class="n">ip</span><span class="p">):</span>
+                <span class="n">public_ips</span> <span class="o">=</span> <span class="p">[</span><span class="n">ip</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">private_ips</span> <span class="o">=</span> <span class="p">[</span><span class="n">ip</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+        <span class="k">return</span> <span class="n">VirtualMachine</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">virtual_machine</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span>
+                              <span class="n">name</span><span class="o">=</span><span class="n">virtual_machine</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instanceID&#39;</span><span class="p">),</span>
+                              <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_to_node_state</span><span class="p">(</span><span class="n">state</span><span class="p">),</span>
+                              <span class="n">public_ips</span><span class="o">=</span><span class="n">public_ips</span><span class="p">,</span>
+                              <span class="n">private_ips</span><span class="o">=</span><span class="n">private_ips</span><span class="p">,</span>
+                              <span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">size</span><span class="o">=</span><span class="n">virtual_machine</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;serviceOffer&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">),</span>
+                              <span class="n">image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="c1">#created_at=virtual_machine.get(&#39;created&#39;),</span>
+                              <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">virtual_machine</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_list_key_pairs_by_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">kp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">kp</span><span class="p">)</span> <span class="k">for</span> <span class="n">kp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_key_pairs</span><span class="p">()</span> 
+                     <span class="k">if</span> <span class="n">kp</span> <span class="ow">and</span> <span class="n">kp</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_ssh_public_key_to_key_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ssh_public_key</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">key_type</span><span class="p">,</span> <span class="n">key_content</span><span class="p">,</span> <span class="n">key_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_ssh_public_key</span><span class="p">(</span><span class="n">ssh_public_key</span><span class="p">)</span>
+                             
+        <span class="n">public_key_name</span> <span class="o">=</span> <span class="n">name</span> <span class="k">if</span> <span class="n">name</span> <span class="k">else</span> <span class="n">key_name</span>                   
+        <span class="n">public_key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_type</span><span class="p">,</span> <span class="n">key_content</span><span class="p">,</span> <span class="n">public_key_name</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">KeyPair</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">public_key_name</span><span class="p">,</span>
+                       <span class="n">public_key</span><span class="o">=</span><span class="n">public_key</span><span class="p">,</span>
+                       <span class="n">fingerprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;public_key_type&#39;</span><span class="p">:</span> <span class="n">key_type</span><span class="p">,</span>
+                              <span class="s1">&#39;public_key_content&#39;</span><span class="p">:</span> <span class="n">key_content</span><span class="p">})</span>
+                              
+    <span class="k">def</span> <span class="nf">_parse_ssh_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ssh_public_key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">ssh_public_key</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\r\n</span><span class="s1"> &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">key_type</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">key_content</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">key_name</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid OpenSSH key format for key: </span><span class="si">{}</span><span class="s1">&#39;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ssh_public_key</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">key_type</span><span class="p">,</span> <span class="n">key_content</span><span class="p">,</span> <span class="n">key_name</span>
+                              
+    <span class="k">def</span> <span class="nf">_add_ssh_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ssh_public_key</span><span class="p">):</span>
+        <span class="n">user_public_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span><span class="o">.</span><span class="n">ssh_public_keys</span>
+        
+        <span class="n">user_public_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ssh_public_key</span><span class="p">)</span>
+        <span class="n">ssh_public_keys</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_public_keys</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">update_user</span><span class="p">(</span><span class="n">ssh_public_keys</span><span class="o">=</span><span class="n">ssh_public_keys</span><span class="p">)</span></div>
+
+
+
+<span class="kn">from</span> <span class="nn">libcloud.compute.providers</span> <span class="k">import</span> <span class="n">set_driver</span>
+<span class="n">set_driver</span><span class="p">(</span><span class="s1">&#39;slipstream&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;slipstream.libcloud.compute_driver&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;SlipStreamNodeDriver&#39;</span><span class="p">)</span>
+
+
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, SixSq.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

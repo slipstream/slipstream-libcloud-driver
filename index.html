@@ -1,0 +1,548 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Welcome to SlipStream Libcloud driver’s documentation! &mdash; SlipStream Libcloud driver 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="SlipStream Libcloud driver 0.1.0 documentation" href="#"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="#" class="icon icon-home"> SlipStream Libcloud driver
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Welcome to SlipStream Libcloud driver’s documentation!</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</div>
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="#">SlipStream Libcloud driver</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="#">Docs</a> &raquo;</li>
+      
+    <li>Welcome to SlipStream Libcloud driver’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="welcome-to-slipstream-libcloud-driver-s-documentation">
+<h1>Welcome to SlipStream Libcloud driver’s documentation!<a class="headerlink" href="#welcome-to-slipstream-libcloud-driver-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+</tbody>
+</table>
+<span class="target" id="module-slipstream.libcloud.compute_driver"></span><p>Libcloud compute driver for SlipStream (<a class="reference external" href="http://sixsq.com/slipstream">http://sixsq.com/slipstream</a>).</p>
+<p>To use this driver please import this file and then use the usual
+libcloud get_driver function.</p>
+<p>import slipstream.libcloud.compute_driver
+from libcloud.compute.providers import get_driver</p>
+<p>driver = get_driver(‘slipstream’)</p>
+<dl class="class">
+<dt id="slipstream.libcloud.compute_driver.VirtualMachine">
+<em class="property">class </em><code class="descclassname">slipstream.libcloud.compute_driver.</code><code class="descname">VirtualMachine</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>state</em>, <em>public_ips</em>, <em>private_ips</em>, <em>driver</em>, <em>size=None</em>, <em>image=None</em>, <em>extra=None</em>, <em>created_at=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#VirtualMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.VirtualMachine" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SlipStream Virtual Machine</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver">
+<em class="property">class </em><code class="descclassname">slipstream.libcloud.compute_driver.</code><code class="descname">SlipStreamNodeDriver</code><span class="sig-paren">(</span><em>key</em>, <em>secret=None</em>, <em>secure=True</em>, <em>host='nuv.la'</em>, <em>port=None</em>, <em>api_version=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver" title="Permalink to this definition">¶</a></dt>
+<dd><p>SlipStream node driver</p>
+<dl class="docutils">
+<dt>Note: This driver manage KeyPair in a slighty different way than others.</dt>
+<dd>All configured key pairs are added to VMs at the creation of VMs.</dd>
+</dl>
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.create_key_pair">
+<code class="descname">create_key_pair</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.create_key_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.create_key_pair" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new key pair object.</p>
+<p>This operation require a working PyCrypto installation with RSA object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Key pair name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.create_node">
+<code class="descname">create_node</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.create_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.create_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new Node (deploy an application or a component)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Name of the node (set as a SlipStream Tag). (optional)</li>
+<li><strong>size</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeSize</span></code>) – Size of Cloud resources (SlipStream serviec offer). (optional)
+If not provided the default of each VM will be used.
+If provided the size will be applied to all VM.</li>
+<li><strong>image</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeImage</span></code>) – Image to deploy (SlipStream application or component). (required)</li>
+<li><strong>location</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeLocation</span></code>) – Location where to create the node (SlipStream cloud). (optional)
+If provided all VM will be started in the specified location.
+If not provided the default location will be used.</li>
+<li><strong>ex_tags</strong> (<code class="docutils literal"><span class="pre">str</span></code> or <code class="docutils literal"><span class="pre">list</span></code>) – List of tags that can be used to identify or annotate a node.</li>
+<li><strong>ex_cloud</strong> (<code class="docutils literal"><span class="pre">str</span></code> or <code class="docutils literal"><span class="pre">dict</span></code>) – To be used instead of location to specify the Cloud name
+on which to start VMs.
+To deploy a component simply specify the Cloud name as a string.
+To deploy a deployment specify a dict with the nodenames as keys 
+and Cloud names as values.</li>
+<li><strong>ex_parameters</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – Parameters to (re)define for this image.
+To redefine a parameter of a SlipStream application’s node 
+use “&lt;nodename&gt;” as keys and dict of parameters as values.
+To redefine a parameter of a SlipStream component or 
+a global parameter use “&lt;parametername&gt;” as the key.</li>
+<li><strong>ex_keep_running</strong> (<em>'always'</em><em> or </em><em>'never'</em><em> or </em><em>'on-success'</em><em> or </em><em>'on-error'</em>) – [Only apply to SlipStream applications] 
+Define when to terminate or not a deployment 
+when it reach the ‘Ready’ state. 
+If scalable is set to True, this value is ignored 
+and it will behave as if it was set to ‘always’.</li>
+<li><strong>ex_multiplicity</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – [Only apply to SlipStream applications]
+A dict to specify how many instances to start 
+per application’s node.
+Application’s sodenames as keys and number of 
+instances to start as values.</li>
+<li><strong>ex_tolerate_failures</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – [Only apply to SlipStream applications]
+A dict to specify how many failures to tolerate
+per application’s node.
+Nodenames as keys and number of failure to 
+tolerate as values.</li>
+<li><strong>ex_check_ssh_key</strong> (<code class="docutils literal"><span class="pre">bool</span></code>) – Set it to True if you want the SlipStream server 
+to check if you have a public ssh key defined. 
+Useful if you want to ensure you will have access to VMs.</li>
+<li><strong>ex_scalable</strong> (<em>True to start a scalable deployment.</em><em> (</em><em>default: False</em><em>)</em>) – [Only apply to SlipStream applications]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The newly created node.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">Node</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.delete_image">
+<code class="descname">delete_image</code><span class="sig-paren">(</span><em>node_image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.delete_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.delete_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes a node image from a provider.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_image</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeImage</span></code>) – Node image object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">True</span></code> if delete_image was successful, <code class="docutils literal"><span class="pre">False</span></code> otherwise.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">bool</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.delete_key_pair">
+<code class="descname">delete_key_pair</code><span class="sig-paren">(</span><em>key_pair</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.delete_key_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.delete_key_pair" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete an existing key pair.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key_pair</strong> (<code class="xref py py-class docutils literal"><span class="pre">KeyPair</span></code>) – Key pair object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.destroy_node">
+<code class="descname">destroy_node</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.destroy_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.destroy_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>”
+Destroy a node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<code class="xref py py-class docutils literal"><span class="pre">Node</span></code>) – The node to be destroyed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the destroy was successful, False otherwise.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">bool</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_list_virtual_machines">
+<code class="descname">ex_list_virtual_machines</code><span class="sig-paren">(</span><em>location=None</em>, <em>node=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.ex_list_virtual_machines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_list_virtual_machines" title="Permalink to this definition">¶</a></dt>
+<dd><p>List Virtual Machines (SlipStream virtual machines)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>location</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeLocation</span></code>) – Return only virtual machines for the specified location</li>
+<li><strong>node</strong> (<code class="xref py py-class docutils literal"><span class="pre">Node</span></code>) – List VM belonging to the specified node</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of virtualmachine objects</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">list</span></code> of <a class="reference internal" href="#slipstream.libcloud.compute_driver.VirtualMachine" title="slipstream.libcloud.compute_driver.VirtualMachine"><code class="xref py py-class docutils literal"><span class="pre">VirtualMachine</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.get_image">
+<code class="descname">get_image</code><span class="sig-paren">(</span><em>image_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.get_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.get_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an image from it’s image_id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image_id</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Image ID (SlipStream path)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">NodeImage instance on success.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">NodeImage</span></code>:</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.get_key_pair">
+<code class="descname">get_key_pair</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.get_key_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.get_key_pair" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a single key pair.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Name of the key pair to retrieve.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A key pair</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">KeyPair</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.import_key_pair_from_file">
+<code class="descname">import_key_pair_from_file</code><span class="sig-paren">(</span><em>name</em>, <em>key_file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.import_key_pair_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.import_key_pair_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import a new public key from string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Key pair name.</li>
+<li><strong>key_file_path</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Path to the public key file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The key pair</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">KeyPair</span></code> object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.import_key_pair_from_string">
+<code class="descname">import_key_pair_from_string</code><span class="sig-paren">(</span><em>name</em>, <em>key_material</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.import_key_pair_from_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.import_key_pair_from_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import a new public key from string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Key pair name.</li>
+<li><strong>key_material</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Public key material.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The key pair</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">KeyPair</span></code> object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_images">
+<code class="descname">list_images</code><span class="sig-paren">(</span><em>location=None</em>, <em>ex_path=None</em>, <em>ex_recurse=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.list_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>List images (SlipStream components and applications)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>location</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeLocation</span></code>) – [NOT IMPLEMENTED] 
+Return only images for the specified location</li>
+<li><strong>ex_path</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Path on which to search for images. (optional)
+If not provided it will list the content of the
+App Store.</li>
+<li><strong>ex_recurse</strong> – Recurse into subprojects. (default: False)
+Setting this value to True can be expensive.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of node image objects.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal"><span class="pre">NodeImage</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_key_pairs">
+<code class="descname">list_key_pairs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.list_key_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_key_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all the available key pair objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of configured key pairs</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal"><span class="pre">KeyPair</span></code> objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_locations">
+<code class="descname">list_locations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.list_locations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>List Locations (SlipStream cloud connectors)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of node location objects</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal"><span class="pre">NodeLocation</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_nodes">
+<code class="descname">list_nodes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.list_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>List Nodes (SlipStream deployments)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of node objects</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal"><span class="pre">Node</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_sizes">
+<code class="descname">list_sizes</code><span class="sig-paren">(</span><em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.list_sizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>List Sizes (SlipStream service offers)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>location</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeLocation</span></code>) – Return only sizes for the specified location</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of node size objects</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal"><span class="pre">NodeSize</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, SixSq.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
