@@ -80,6 +80,7 @@
 <li><a class="reference internal" href="#most-recent-version-from-source-code">Most recent version from source code</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
 <li><a class="reference internal" href="#examples">Examples</a><ul>
 <li><a class="reference internal" href="#login-on-nuvla-with-username-and-password">Login on Nuvla with username and password</a></li>
 <li><a class="reference internal" href="#login-on-nuvla-with-key-and-secret">Login on Nuvla with key and secret</a></li>
@@ -142,14 +143,6 @@
 </tbody>
 </table>
 <span class="target" id="module-slipstream.libcloud.compute_driver"></span><p>Libcloud compute driver for SlipStream (<a class="reference external" href="http://sixsq.com/slipstream">http://sixsq.com/slipstream</a>).</p>
-<p>To use this driver please import this file and then use the usual
-libcloud get_driver function.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">slipstream.libcloud.compute_driver</span>
-<span class="kn">from</span> <span class="nn">libcloud.compute.providers</span> <span class="k">import</span> <span class="n">get_driver</span>
-
-<span class="n">slipstream_driver</span> <span class="o">=</span> <span class="n">get_driver</span><span class="p">(</span><span class="s1">&#39;slipstream&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
 <div class="section" id="install">
 <h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="latest-release-from-pypi">
@@ -163,6 +156,17 @@ libcloud get_driver function.:</p>
 <div class="highlight-Bash"><div class="highlight"><pre><span></span>$ pip install <span class="s1">&#39;https://github.com/slipstream/slipstream-libcloud-driver/archive/master.zip&#39;</span>
 </pre></div>
 </div>
+</div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>To use this driver please import this file and then use the usual
+libcloud get_driver function.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">slipstream.libcloud.compute_driver</span>
+<span class="kn">from</span> <span class="nn">libcloud.compute.providers</span> <span class="k">import</span> <span class="n">get_driver</span>
+
+<span class="n">slipstream_driver</span> <span class="o">=</span> <span class="n">get_driver</span><span class="p">(</span><span class="s1">&#39;slipstream&#39;</span><span class="p">)</span>
+</pre></div>
 </div>
 </div>
 <div class="section" id="examples">
