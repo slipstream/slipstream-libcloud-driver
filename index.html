@@ -75,6 +75,15 @@
               <!-- Local TOC -->
               <div class="local-toc"><ul>
 <li><a class="reference internal" href="#">Welcome to SlipStream Libcloud driver’s documentation!</a><ul>
+<li><a class="reference internal" href="#examples">Examples</a><ul>
+<li><a class="reference internal" href="#login-on-nuvla-with-username-and-password">Login on Nuvla with username and password</a></li>
+<li><a class="reference internal" href="#login-on-nuvla-with-key-and-secret">Login on Nuvla with key and secret</a></li>
+<li><a class="reference internal" href="#list-images-from-the-app-store">List Images from the App Store</a></li>
+<li><a class="reference internal" href="#list-base-images">List base Images</a></li>
+<li><a class="reference internal" href="#simple-node-creation-wordpress-server">Simple node creation (WordPress server)</a></li>
+<li><a class="reference internal" href="#complete-application-node-deployment-wordpress-server">Complete application (node) deployment (WordPress server)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -129,14 +138,102 @@
 </table>
 <span class="target" id="module-slipstream.libcloud.compute_driver"></span><p>Libcloud compute driver for SlipStream (<a class="reference external" href="http://sixsq.com/slipstream">http://sixsq.com/slipstream</a>).</p>
 <p>To use this driver please import this file and then use the usual
-libcloud get_driver function.</p>
-<p>import slipstream.libcloud.compute_driver
-from libcloud.compute.providers import get_driver</p>
-<p>driver = get_driver(‘slipstream’)</p>
+libcloud get_driver function.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">slipstream.libcloud.compute_driver</span>
+<span class="kn">from</span> <span class="nn">libcloud.compute.providers</span> <span class="k">import</span> <span class="n">get_driver</span>
+
+<span class="n">slipstream_driver</span> <span class="o">=</span> <span class="n">get_driver</span><span class="p">(</span><span class="s1">&#39;slipstream&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="login-on-nuvla-with-username-and-password">
+<h3>Login on Nuvla with username and password<a class="headerlink" href="#login-on-nuvla-with-username-and-password" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ss</span> <span class="o">=</span> <span class="n">slipstream_driver</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="login-on-nuvla-with-key-and-secret">
+<h3>Login on Nuvla with key and secret<a class="headerlink" href="#login-on-nuvla-with-key-and-secret" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ss</span> <span class="o">=</span> <span class="n">slipstream_driver</span><span class="p">(</span><span class="s1">&#39;credential/ce02ef40-1342-4e68-838d-e1b2a75adb1e&#39;</span><span class="p">,</span> 
+                       <span class="s1">&#39;the-secret-key&#39;</span><span class="p">,</span> 
+                       <span class="n">ex_login_method</span><span class="o">=</span><span class="s1">&#39;api-key&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="list-images-from-the-app-store">
+<h3>List Images from the App Store<a class="headerlink" href="#list-images-from-the-app-store" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pprint</span> <span class="k">as</span> <span class="n">pp</span>
+<span class="n">pp</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">list_images</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="list-base-images">
+<h3>List base Images<a class="headerlink" href="#list-base-images" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pprint</span> <span class="k">as</span> <span class="n">pp</span>
+<span class="n">pp</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">ex_path</span><span class="o">=</span><span class="s1">&#39;examples/images&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="simple-node-creation-wordpress-server">
+<h3>Simple node creation (WordPress server)<a class="headerlink" href="#simple-node-creation-wordpress-server" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Get the WordPress image</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">get_image</span><span class="p">(</span><span class="s1">&#39;apps/WordPress/wordpress&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create the Node</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">create_node</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="complete-application-node-deployment-wordpress-server">
+<h3>Complete application (node) deployment (WordPress server)<a class="headerlink" href="#complete-application-node-deployment-wordpress-server" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Get the WordPress image</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">get_image</span><span class="p">(</span><span class="s1">&#39;apps/WordPress/wordpress&#39;</span><span class="p">)</span>
+
+<span class="c1"># WordPress Title</span>
+<span class="n">wordpress_title</span> <span class="o">=</span> <span class="s1">&#39;WordPress deployed by SlipStream through Libcloud&#39;</span>
+
+<span class="c1"># Create the dict of parameters to (re)define</span>
+<span class="n">parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">wordpress_title</span><span class="o">=</span><span class="n">wordpress_title</span><span class="p">)</span>
+
+<span class="c1"># Create the Node</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">create_node</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">ex_parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+
+<span class="c1"># Wait the node to be ready</span>
+<span class="n">ss</span><span class="o">.</span><span class="n">ex_wait_node_in_state</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+<span class="c1"># Update the node</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">ex_get_node</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+<span class="c1"># Print the WordPress URL</span>
+<span class="nb">print</span> <span class="n">node</span><span class="o">.</span><span class="n">extra</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;service_url&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="slipstream.libcloud.compute_driver.VirtualMachine">
 <em class="property">class </em><code class="descclassname">slipstream.libcloud.compute_driver.</code><code class="descname">VirtualMachine</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>state</em>, <em>public_ips</em>, <em>private_ips</em>, <em>driver</em>, <em>size=None</em>, <em>image=None</em>, <em>extra=None</em>, <em>created_at=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#VirtualMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.VirtualMachine" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SlipStream Virtual Machine</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Node ID.</li>
+<li><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Node name.</li>
+<li><strong>state</strong> (<code class="xref py py-class docutils literal"><span class="pre">libcloud.compute.types.NodeState</span></code>) – Node state.</li>
+<li><strong>public_ips</strong> (<code class="docutils literal"><span class="pre">list</span></code>) – Public IP addresses associated with this node.</li>
+<li><strong>private_ips</strong> (<code class="docutils literal"><span class="pre">list</span></code>) – Private IP addresses associated with this node.</li>
+<li><strong>driver</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeDriver</span></code>) – Driver this node belongs to.</li>
+<li><strong>size</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeSize</span></code>) – Size of this node. (optional)</li>
+<li><strong>image</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeImage</span></code>) – Image of this node. (optional)</li>
+<li><strong>created_at</strong> – The datetime this node was created (optional)</li>
+<li><strong>extra</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – Optional provider specific attributes associated with
+this node.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">
@@ -147,6 +244,27 @@ from libcloud.compute.providers import get_driver</p>
 <dt>Note: This driver manage KeyPair in a slighty different way than others.</dt>
 <dd>All configured key pairs are added to VMs at the creation of VMs.</dd>
 </dl>
+<p>Instanciate a SlipStream node driver.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Username or API key</li>
+<li><strong>secret</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Password or Secret key</li>
+<li><strong>secure</strong> (<code class="docutils literal"><span class="pre">bool</span></code>) – Use secure (HTTPS) connection</li>
+<li><strong>host</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Hostname of the SlipStream endpoint (default: nuv.la)</li>
+<li><strong>port</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – Port of the SlipStream endpoint (default: 443 if secure else 80)</li>
+<li><strong>api_version</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – [Unused]</li>
+<li><strong>ex_endpoint</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – The SlipStream endpoint (example: <a class="reference external" href="https://nuv.la">https://nuv.la</a>)</li>
+<li><strong>ex_cookie_file</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Path to a existing cookie file to use instead of key and secret</li>
+<li><strong>ex_login_method</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – Login method (internal for username/password and api-key for key/secret)</li>
+<li><strong>ex_login_parameters</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – Extra parameters to provide to the login method</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.create_key_pair">
 <code class="descname">create_key_pair</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.create_key_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.create_key_pair" title="Permalink to this definition">¶</a></dt>
@@ -274,6 +392,24 @@ Destroy a node.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_get_node">
+<code class="descname">ex_get_node</code><span class="sig-paren">(</span><em>node_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.ex_get_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_get_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a node from it’s ID</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_id</strong> (<code class="docutils literal"><span class="pre">str</span></code> or <code class="xref py py-class docutils literal"><span class="pre">UUID</span></code>) – ID of the node to retrieve</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The requested node</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Node</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_list_virtual_machines">
 <code class="descname">ex_list_virtual_machines</code><span class="sig-paren">(</span><em>location=None</em>, <em>node=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.ex_list_virtual_machines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_list_virtual_machines" title="Permalink to this definition">¶</a></dt>
 <dd><p>List Virtual Machines (SlipStream virtual machines)</p>
@@ -291,6 +427,32 @@ Destroy a node.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">list</span></code> of <a class="reference internal" href="#slipstream.libcloud.compute_driver.VirtualMachine" title="slipstream.libcloud.compute_driver.VirtualMachine"><code class="xref py py-class docutils literal"><span class="pre">VirtualMachine</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_wait_node_in_state">
+<code class="descname">ex_wait_node_in_state</code><span class="sig-paren">(</span><em>node</em>, <em>states='Ready'</em>, <em>wait_period=10</em>, <em>timeout=600</em>, <em>ignore_abort=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.ex_wait_node_in_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_wait_node_in_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait a node to be in one of the specified states (default: Ready)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>states</strong> (<code class="docutils literal"><span class="pre">str</span></code> or <code class="docutils literal"><span class="pre">list</span></code>) – The names of the states to wait for. (default: Ready)</li>
+<li><strong>wait_period</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – How many seconds to wait between each loop iteration. (default: 10)</li>
+<li><strong>timeout</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – How many seconds to wait before giving up. (default: 600)</li>
+<li><strong>ignore_abort</strong> (<code class="docutils literal"><span class="pre">bool</span></code>) – If False, raise an exception if the node has failed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The state that was reached or raise a LibcloudError if timeout</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">str</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -478,6 +640,8 @@ Setting this value to True can be expensive.</li>
 
 </dd></dl>
 
+</div>
+</div>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>

@@ -132,14 +132,90 @@
 <span class="sd"> Libcloud compute driver for SlipStream (http://sixsq.com/slipstream).</span>
 
 <span class="sd"> To use this driver please import this file and then use the usual</span>
-<span class="sd"> libcloud get_driver function.</span>
+<span class="sd"> libcloud get_driver function.::</span>
 
-<span class="sd"> import slipstream.libcloud.compute_driver</span>
-<span class="sd"> from libcloud.compute.providers import get_driver</span>
+<span class="sd">    import slipstream.libcloud.compute_driver</span>
+<span class="sd">    from libcloud.compute.providers import get_driver</span>
 <span class="sd"> </span>
-<span class="sd"> driver = get_driver(&#39;slipstream&#39;)</span>
+<span class="sd">    slipstream_driver = get_driver(&#39;slipstream&#39;)</span>
+<span class="sd"> </span>
+<span class="sd"> </span>
+<span class="sd"> Examples</span>
+<span class="sd"> --------</span>
+
+<span class="sd"> Login on Nuvla with username and password</span>
+<span class="sd"> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd"> ::</span>
+
+<span class="sd">    ss = slipstream_driver(&#39;username&#39;, &#39;password&#39;)</span>
+
+
+<span class="sd"> Login on Nuvla with key and secret</span>
+<span class="sd"> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd"> ::</span>
+
+<span class="sd">    ss = slipstream_driver(&#39;credential/ce02ef40-1342-4e68-838d-e1b2a75adb1e&#39;, </span>
+<span class="sd">                           &#39;the-secret-key&#39;, </span>
+<span class="sd">                           ex_login_method=&#39;api-key&#39;)</span>
+
+
+<span class="sd"> List Images from the App Store</span>
+<span class="sd"> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd"> ::</span>
+
+<span class="sd">    from pprint import pprint as pp</span>
+<span class="sd">    pp(ss.list_images())</span>
+
+
+<span class="sd"> List base Images</span>
+<span class="sd"> ~~~~~~~~~~~~~~~~</span>
+<span class="sd"> ::</span>
+
+<span class="sd">    from pprint import pprint as pp</span>
+<span class="sd">    pp(ss.list_images(ex_path=&#39;examples/images&#39;))</span>
+
+
+<span class="sd"> Simple node creation (WordPress server)</span>
+<span class="sd"> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd"> ::</span>
+<span class="sd"> </span>
+<span class="sd">    # Get the WordPress image</span>
+<span class="sd">    image = ss.get_image(&#39;apps/WordPress/wordpress&#39;)</span>
+<span class="sd">    </span>
+<span class="sd">    # Create the Node</span>
+<span class="sd">    node = ss.create_node(image=image)</span>
+<span class="sd"> </span>
+<span class="sd"> </span>
+<span class="sd"> Complete application (node) deployment (WordPress server)</span>
+<span class="sd"> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd"> ::</span>
+<span class="sd"> </span>
+<span class="sd">    # Get the WordPress image</span>
+<span class="sd">    image = ss.get_image(&#39;apps/WordPress/wordpress&#39;)</span>
+<span class="sd">    </span>
+<span class="sd">    # WordPress Title</span>
+<span class="sd">    wordpress_title = &#39;WordPress deployed by SlipStream through Libcloud&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    # Create the dict of parameters to (re)define</span>
+<span class="sd">    parameters = dict(wordpress_title=wordpress_title)</span>
+<span class="sd">    </span>
+<span class="sd">    # Create the Node</span>
+<span class="sd">    node = ss.create_node(image=image, ex_parameters=parameters)</span>
+<span class="sd">    </span>
+<span class="sd">    # Wait the node to be ready</span>
+<span class="sd">    ss.ex_wait_node_in_state(node)</span>
+<span class="sd">    </span>
+<span class="sd">    # Update the node</span>
+<span class="sd">    node = ss.ex_get_node(node.id)</span>
+<span class="sd">    </span>
+<span class="sd">    # Print the WordPress URL</span>
+<span class="sd">    print node.extra.get(&#39;service_url&#39;)</span>
+<span class="sd">    </span>
+
+
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 
@@ -148,7 +224,7 @@
 <span class="kn">from</span> <span class="nn">libcloud.compute.base</span> <span class="k">import</span> <span class="n">NodeAuthSSHKey</span><span class="p">,</span> <span class="n">NodeDriver</span>
 <span class="kn">from</span> <span class="nn">libcloud.compute.base</span> <span class="k">import</span> <span class="n">NodeLocation</span><span class="p">,</span> <span class="n">UuidMixin</span>
 <span class="kn">from</span> <span class="nn">libcloud.compute.base</span> <span class="k">import</span> <span class="n">StorageVolume</span>
-<span class="kn">from</span> <span class="nn">libcloud.compute.types</span> <span class="k">import</span> <span class="n">NodeState</span>
+<span class="kn">from</span> <span class="nn">libcloud.compute.types</span> <span class="k">import</span> <span class="n">NodeState</span><span class="p">,</span> <span class="n">LibcloudError</span>
 <span class="kn">from</span> <span class="nn">libcloud.utils.networking</span> <span class="k">import</span> <span class="n">is_public_subnet</span>
 
 <span class="kn">from</span> <span class="nn">slipstream.api</span> <span class="k">import</span> <span class="n">Api</span>
@@ -219,8 +295,6 @@
                  <span class="n">api_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instanciate a SlipStream node driver.</span>
-
-<span class="sd">        @inherits:  :class:`NodeDriver.__init__`</span>
 
 <span class="sd">        :param      key:  Username or API key</span>
 <span class="sd">        :type       key:  ``str``</span>
@@ -436,17 +510,19 @@
                     <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;service-offer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span><span class="o">.</span><span class="n">id</span>
         
         <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">tags</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="k">else</span> <span class="n">tags</span>
-        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">tags</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">tags</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
-                                  <span class="n">cloud</span><span class="o">=</span><span class="n">cloud</span><span class="p">,</span>
-                                  <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
-                                  <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
-                                  <span class="n">keep_running</span><span class="o">=</span><span class="n">keep_running</span><span class="p">,</span>
-                                  <span class="n">scalable</span><span class="o">=</span><span class="n">scalable</span><span class="p">,</span>
-                                  <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
-                                  <span class="n">tolerate_failures</span><span class="o">=</span><span class="n">tolerate_failures</span><span class="p">,</span>
-                                  <span class="n">check_ssh_key</span><span class="o">=</span><span class="n">check_ssh_key</span><span class="p">)</span></div>
+        <span class="n">node_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+                                    <span class="n">cloud</span><span class="o">=</span><span class="n">cloud</span><span class="p">,</span>
+                                    <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                                    <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
+                                    <span class="n">keep_running</span><span class="o">=</span><span class="n">keep_running</span><span class="p">,</span>
+                                    <span class="n">scalable</span><span class="o">=</span><span class="n">scalable</span><span class="p">,</span>
+                                    <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
+                                    <span class="n">tolerate_failures</span><span class="o">=</span><span class="n">tolerate_failures</span><span class="p">,</span>
+                                    <span class="n">check_ssh_key</span><span class="o">=</span><span class="n">check_ssh_key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex_get_node</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SlipStreamNodeDriver.destroy_node"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.destroy_node">[docs]</a>    <span class="k">def</span> <span class="nf">destroy_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;&quot;</span>
@@ -619,6 +695,52 @@
         <span class="n">ssh_public_keys</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">kp</span><span class="o">.</span><span class="n">public_key</span> <span class="k">for</span> <span class="n">kp</span> <span class="ow">in</span> <span class="n">key_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">update_user</span><span class="p">(</span><span class="n">ssh_public_keys</span><span class="o">=</span><span class="n">ssh_public_keys</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.ex_get_node"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_get_node">[docs]</a>    <span class="k">def</span> <span class="nf">ex_get_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a node from it&#39;s ID</span>
+<span class="sd">        </span>
+<span class="sd">        :param    node_id:  ID of the node to retrieve</span>
+<span class="sd">        :type     node_id:  ``str`` or :class:`UUID`</span>
+<span class="sd">        </span>
+<span class="sd">        :return:    The requested node</span>
+<span class="sd">        :rtype:     :class:`Node`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deployment_to_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_deployment</span><span class="p">(</span><span class="n">node_id</span><span class="p">))</span></div>
+        
+<div class="viewcode-block" id="SlipStreamNodeDriver.ex_wait_node_in_state"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_wait_node_in_state">[docs]</a>    <span class="k">def</span> <span class="nf">ex_wait_node_in_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">states</span><span class="o">=</span><span class="s1">&#39;Ready&#39;</span><span class="p">,</span> <span class="n">wait_period</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                              <span class="n">timeout</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">ignore_abort</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wait a node to be in one of the specified states (default: Ready)</span>
+<span class="sd">        </span>
+<span class="sd">        :param    states:  The names of the states to wait for. (default: Ready)</span>
+<span class="sd">        :type     states:  ``str`` or ``list``</span>
+<span class="sd">        </span>
+<span class="sd">        :param    wait_period:  How many seconds to wait between each loop iteration. (default: 10)</span>
+<span class="sd">        :type     wait_period: ``int``</span>
+<span class="sd">        </span>
+<span class="sd">        :param    timeout:  How many seconds to wait before giving up. (default: 600)</span>
+<span class="sd">        :type     timeout: ``int``</span>
+<span class="sd">        </span>
+<span class="sd">        :param    ignore_abort: If False, raise an exception if the node has failed</span>
+<span class="sd">        :type     ignore_abort: ``bool``</span>
+<span class="sd">        </span>
+<span class="sd">        :return:    The state that was reached or raise a LibcloudError if timeout</span>
+<span class="sd">        :rtype:     ``str``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_states</span> <span class="o">=</span> <span class="p">[</span><span class="n">states</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="k">else</span> <span class="n">states</span>
+        <span class="n">deadline</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">timeout</span>
+        
+        <span class="k">while</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">deadline</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_deployment_parameter</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s1">&#39;ss:state&#39;</span><span class="p">,</span> 
+                                                         <span class="n">ignore_abort</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">_states</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">state</span>
+            
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_period</span><span class="p">)</span>
+        
+        <span class="k">raise</span> <span class="n">LibcloudError</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;Timed out after </span><span class="si">%s</span><span class="s1"> seconds&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timeout</span><span class="p">),</span>
+                            <span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SlipStreamNodeDriver.ex_list_virtual_machines"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_list_virtual_machines">[docs]</a>    <span class="k">def</span> <span class="nf">ex_list_virtual_machines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
