@@ -323,17 +323,19 @@ class SlipStreamNodeDriver(NodeDriver):
                     parameters['service-offer'] = size.id
         
         tags = [tags] if isinstance(tags, basestring) else tags
-        tags = [name] + tags
+        if name:
+            tags = [name] + tags
 
-        return self.ss_api.deploy(path=path,
-                                  cloud=cloud,
-                                  parameters=parameters,
-                                  tags=tags,
-                                  keep_running=keep_running,
-                                  scalable=scalable,
-                                  multiplicity=multiplicity,
-                                  tolerate_failures=tolerate_failures,
-                                  check_ssh_key=check_ssh_key)
+        node_id = self.ss_api.deploy(path=path,
+                                    cloud=cloud,
+                                    parameters=parameters,
+                                    tags=tags,
+                                    keep_running=keep_running,
+                                    scalable=scalable,
+                                    multiplicity=multiplicity,
+                                    tolerate_failures=tolerate_failures,
+                                    check_ssh_key=check_ssh_key)
+        return self.ex_get_node(node_id)
 
     def destroy_node(self, node):
         """"
