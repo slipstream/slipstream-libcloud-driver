@@ -19,12 +19,87 @@
  Libcloud compute driver for SlipStream (http://sixsq.com/slipstream).
 
  To use this driver please import this file and then use the usual
- libcloud get_driver function.
+ libcloud get_driver function.::
 
- import slipstream.libcloud.compute_driver
- from libcloud.compute.providers import get_driver
+    import slipstream.libcloud.compute_driver
+    from libcloud.compute.providers import get_driver
  
- driver = get_driver('slipstream')
+    slipstream_driver = get_driver('slipstream')
+ 
+ 
+ Examples
+ --------
+
+ Login on Nuvla with username and password
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ::
+
+    ss = slipstream_driver('username', 'password')
+
+
+ Login on Nuvla with key and secret
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ::
+
+    ss = slipstream_driver('credential/ce02ef40-1342-4e68-838d-e1b2a75adb1e', 
+                           'the-secret-key', 
+                           ex_login_method='api-key')
+
+
+ List Images from the App Store
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ::
+
+    from pprint import pprint as pp
+    pp(ss.list_images())
+
+
+ List base Images
+ ~~~~~~~~~~~~~~~~
+ ::
+
+    from pprint import pprint as pp
+    pp(ss.list_images(ex_path='examples/images'))
+
+
+ Simple node creation (WordPress server)
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ::
+ 
+    # Get the WordPress image
+    image = ss.get_image('apps/WordPress/wordpress')
+    
+    # Create the Node
+    node = ss.create_node(image=image)
+ 
+ 
+ Complete application (node) deployment (WordPress server)
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ::
+ 
+    # Get the WordPress image
+    image = ss.get_image('apps/WordPress/wordpress')
+    
+    # WordPress Title
+    wordpress_title = 'WordPress deployed by SlipStream through Libcloud'
+    
+    # Create the dict of parameters to (re)define
+    parameters = dict(wordpress_title=wordpress_title)
+    
+    # Create the Node
+    node = ss.create_node(image=image, ex_parameters=parameters)
+    
+    # Wait the node to be ready
+    ss.ex_wait_node_in_state(node)
+    
+    # Update the node
+    node = ss.ex_get_node(node.id)
+    
+    # Print the WordPress URL
+    print node.extra.get('service_url')
+    
+
+
 """
 
 import time
@@ -107,8 +182,6 @@ class SlipStreamNodeDriver(NodeDriver):
                  api_version=None, **kwargs):
         """
         Instanciate a SlipStream node driver.
-
-        @inherits:  :class:`NodeDriver.__init__`
 
         :param      key:  Username or API key
         :type       key:  ``str``
