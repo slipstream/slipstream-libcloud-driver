@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to SlipStream Libcloud driver’s documentation! &mdash; SlipStream Libcloud driver 0.1.0 documentation</title>
+  <title>Welcome to SlipStream Libcloud driver’s documentation! &mdash; SlipStream Libcloud driver 0.1.1 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="SlipStream Libcloud driver 0.1.0 documentation" href="#"/> 
+    <link rel="top" title="SlipStream Libcloud driver 0.1.1 documentation" href="#"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -75,6 +75,11 @@
               <!-- Local TOC -->
               <div class="local-toc"><ul>
 <li><a class="reference internal" href="#">Welcome to SlipStream Libcloud driver’s documentation!</a><ul>
+<li><a class="reference internal" href="#install">Install</a><ul>
+<li><a class="reference internal" href="#latest-release-from-pypi">Latest release from pypi</a></li>
+<li><a class="reference internal" href="#most-recent-version-from-source-code">Most recent version from source code</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#examples">Examples</a><ul>
 <li><a class="reference internal" href="#login-on-nuvla-with-username-and-password">Login on Nuvla with username and password</a></li>
 <li><a class="reference internal" href="#login-on-nuvla-with-key-and-secret">Login on Nuvla with key and secret</a></li>
@@ -145,6 +150,21 @@ libcloud get_driver function.:</p>
 <span class="n">slipstream_driver</span> <span class="o">=</span> <span class="n">get_driver</span><span class="p">(</span><span class="s1">&#39;slipstream&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
+<div class="section" id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="latest-release-from-pypi">
+<h3>Latest release from pypi<a class="headerlink" href="#latest-release-from-pypi" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-Bash"><div class="highlight"><pre><span></span>$ pip install slipstream-libcloud-driver
+</pre></div>
+</div>
+</div>
+<div class="section" id="most-recent-version-from-source-code">
+<h3>Most recent version from source code<a class="headerlink" href="#most-recent-version-from-source-code" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-Bash"><div class="highlight"><pre><span></span>$ pip install <span class="s1">&#39;https://github.com/slipstream/slipstream-libcloud-driver/archive/master.zip&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="login-on-nuvla-with-username-and-password">
@@ -211,7 +231,7 @@ libcloud get_driver function.:</p>
 </div>
 <dl class="class">
 <dt id="slipstream.libcloud.compute_driver.VirtualMachine">
-<em class="property">class </em><code class="descclassname">slipstream.libcloud.compute_driver.</code><code class="descname">VirtualMachine</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>state</em>, <em>public_ips</em>, <em>private_ips</em>, <em>driver</em>, <em>size=None</em>, <em>image=None</em>, <em>extra=None</em>, <em>created_at=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#VirtualMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.VirtualMachine" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">slipstream.libcloud.compute_driver.</code><code class="descname">VirtualMachine</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>state</em>, <em>public_ips</em>, <em>private_ips</em>, <em>driver</em>, <em>size=None</em>, <em>image=None</em>, <em>extra=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#VirtualMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.VirtualMachine" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SlipStream Virtual Machine</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -224,9 +244,8 @@ libcloud get_driver function.:</p>
 <li><strong>public_ips</strong> (<code class="docutils literal"><span class="pre">list</span></code>) – Public IP addresses associated with this node.</li>
 <li><strong>private_ips</strong> (<code class="docutils literal"><span class="pre">list</span></code>) – Private IP addresses associated with this node.</li>
 <li><strong>driver</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeDriver</span></code>) – Driver this node belongs to.</li>
-<li><strong>size</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeSize</span></code>) – Size of this node. (optional)</li>
-<li><strong>image</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeImage</span></code>) – Image of this node. (optional)</li>
-<li><strong>created_at</strong> – The datetime this node was created (optional)</li>
+<li><strong>size</strong> (<code class="xref py py-class docutils literal"><span class="pre">NodeImage</span></code>) – Size of this node. (optional)</li>
+<li><strong>image</strong> – Image of this node. (optional)</li>
 <li><strong>extra</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – Optional provider specific attributes associated with
 this node.</li>
 </ul>
@@ -682,7 +701,7 @@ Setting this value to True can be expensive.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.0',
+            VERSION:'0.1.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
