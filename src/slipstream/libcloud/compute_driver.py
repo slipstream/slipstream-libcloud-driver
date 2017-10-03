@@ -18,13 +18,6 @@
 """
  Libcloud compute driver for SlipStream (http://sixsq.com/slipstream).
 
- To use this driver please import this file and then use the usual
- libcloud get_driver function.::
-
-    import slipstream.libcloud.compute_driver
-    from libcloud.compute.providers import get_driver
- 
-    slipstream_driver = get_driver('slipstream')
  
  Install
  -------
@@ -41,7 +34,18 @@
  
    $ pip install 'https://github.com/slipstream/slipstream-libcloud-driver/archive/master.zip'
  
+
+ Usage
+ -----
+ To use this driver please import this file and then use the usual
+ libcloud get_driver function.::
+
+    import slipstream.libcloud.compute_driver
+    from libcloud.compute.providers import get_driver
  
+    slipstream_driver = get_driver('slipstream')
+ 
+
  Examples
  --------
 
