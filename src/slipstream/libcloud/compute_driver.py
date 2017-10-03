@@ -27,6 +27,7 @@
  driver = get_driver('slipstream')
 """
 
+import time
 import warnings
 import traceback
 
@@ -35,7 +36,7 @@ from libcloud.compute.base import NodeImage, NodeSize, Node, KeyPair
 from libcloud.compute.base import NodeAuthSSHKey, NodeDriver
 from libcloud.compute.base import NodeLocation, UuidMixin
 from libcloud.compute.base import StorageVolume
-from libcloud.compute.types import NodeState
+from libcloud.compute.types import NodeState, LibcloudError
 from libcloud.utils.networking import is_public_subnet
 
 from slipstream.api import Api
@@ -521,6 +522,40 @@ class SlipStreamNodeDriver(NodeDriver):
         """
         return self._deployment_to_node(self.ss_api.get_deployment(node_id))
         
+    def ex_wait_node_in_state(self, node, states='Ready', wait_period=10,
+                              timeout=600, ignore_abort=False):
+        """
+        Wait a node to be in one of the specified states (default: Ready)
+        
+        :param    states:  The names of the states to wait for. (default: Ready)
+        :type     states:  ``str`` or ``list``
+        
+        :param    wait_period:  How many seconds to wait between each loop iteration. (default: 10)
+        :type     wait_period: ``int``
+        
+        :param    timeout:  How many seconds to wait before giving up. (default: 600)
+        :type     timeout: ``int``
+        
+        :param    ignore_abort: If False, raise an exception if the node has failed
+        :type     ignore_abort: ``bool``
+        
+        :return:    The state that was reached or raise a LibcloudError if timeout
+        :rtype:     ``str``
+        """
+        _states = [states] if isinstance(states, basestring) else states
+        deadline = time.time() + timeout
+        
+        while time.time() < deadline:
+            state = self.ss_api.get_deployment_parameter(node.id, 'ss:state', 
+                                                         ignore_abort)
+            if state in _states:
+                return state
+            
+            time.sleep(wait_period)
+        
+        raise LibcloudError(value='Timed out after %s seconds' % (timeout),
+                            driver=self)
+
     def ex_list_virtual_machines(self, location=None, node=None):
         """
         List Virtual Machines (SlipStream virtual machines)
