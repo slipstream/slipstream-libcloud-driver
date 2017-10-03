@@ -509,6 +509,18 @@ class SlipStreamNodeDriver(NodeDriver):
 
         return self.ss_api.update_user(ssh_public_keys=ssh_public_keys)
 
+    def ex_get_node(self, node_id):
+        """
+        Get a node from it's ID
+        
+        :param    node_id:  ID of the node to retrieve
+        :type     node_id:  ``str`` or :class:`UUID`
+        
+        :return:    The requested node
+        :rtype:     :class:`Node`
+        """
+        return self._deployment_to_node(self.ss_api.get_deployment(node_id))
+        
     def ex_list_virtual_machines(self, location=None, node=None):
         """
         List Virtual Machines (SlipStream virtual machines)
