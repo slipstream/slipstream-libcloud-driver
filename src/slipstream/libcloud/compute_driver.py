@@ -26,6 +26,21 @@
  
     slipstream_driver = get_driver('slipstream')
  
+ Install
+ -------
+
+ Latest release from pypi
+ ~~~~~~~~~~~~~~~~~~~~~~~~
+ .. code-block:: Bash
+ 
+   $ pip install slipstream-libcloud-driver
+ 
+ Most recent version from source code
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ .. code-block:: Bash
+ 
+   $ pip install 'https://github.com/slipstream/slipstream-libcloud-driver/archive/master.zip'
+ 
  
  Examples
  --------
