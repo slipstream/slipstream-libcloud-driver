@@ -410,7 +410,7 @@ class SlipStreamNodeDriver(NodeDriver):
         if size:
             if element.type == 'application':
                 for app_node in self.ss_api.get_application_nodes(path):
-                    node_params = parameters.setdefault(element_node.name, {})
+                    node_params = parameters.setdefault(app_node.name, {})
                     if 'service-offer' not in node_params:
                         node_params['service-offer'] = size.id
             else:
