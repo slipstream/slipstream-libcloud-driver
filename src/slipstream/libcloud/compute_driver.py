@@ -116,10 +116,31 @@
     
     # Print the WordPress URL
     print node.extra.get('service_url')
+
+
+ Destroy a node (terminate a deployment)
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ::
+
+    # Destroy the node
+    ss.destroy_node(node)
     
 
  API documentation
  -----------------
+
+ .. note:: Returned nodes will not contain IP addresses.
+    To obtain them, please use the function ``ex_list_virtual_machines``
+    or ``ex_get_node_parameter`` as shown below:
+    ::
+
+        # Get the machine:hostname parameter of the node
+        ip = ss.ex_get_node_parameter(node, 'machine:hostname')
+
+        # List all virtual machines for a node
+        vms = ss.ex_list_virtual_machines(node=node)
+        # List of IPs per VM
+        ips = [vm.public_ips + vm.private_ips for vm in vms]
 
 """
 
@@ -280,12 +301,12 @@ class SlipStreamNodeDriver(NodeDriver):
         :return:    List of node objects
         :rtype:     ``list`` of :class:`Node`
         """
-        deployments = self.ss_api.list_deployments()
+        deployments = self.ss_api.list_deployments(limit=500)
         return [self._deployment_to_node(depl) for depl in deployments]
 
     def list_sizes(self, location=None):
         """
-        List Sizes (SlipStream service offers)
+        List Sizes (SlipStream service offers)list_virt
 
         :param    location:  Return only sizes for the specified location
         :type     location:  :class:`NodeLocation`
@@ -349,21 +370,21 @@ class SlipStreamNodeDriver(NodeDriver):
                            a global parameter use "<parametername>" as the key.
         :type     ex_parameters:  ``dict``
 
-        :keyword  ex_keep_running:  [Only apply to SlipStream applications] 
+        :keyword  ex_keep_running:  [Only applies to SlipStream applications] 
                                     Define when to terminate or not a deployment 
                                     when it reach the 'Ready' state. 
                                     If scalable is set to True, this value is ignored 
                                     and it will behave as if it was set to 'always'.
         :type     ex_keep_running:  'always' or 'never' or 'on-success' or 'on-error'
 
-        :keyword  ex_multiplicity:  [Only apply to SlipStream applications]
+        :keyword  ex_multiplicity:  [Only applies to SlipStream applications]
                                     A dict to specify how many instances to start 
                                     per application's node.
-                                    Application's sodenames as keys and number of 
+                                    Application's nodenames as keys and number of 
                                     instances to start as values.
         :type     ex_multiplicity:  ``dict``
 
-        :keyword  ex_tolerate_failures:  [Only apply to SlipStream applications]
+        :keyword  ex_tolerate_failures:  [Only applies to SlipStream applications]
                                          A dict to specify how many failures to tolerate
                                          per application's node.
                                          Nodenames as keys and number of failure to 
@@ -375,7 +396,7 @@ class SlipStreamNodeDriver(NodeDriver):
                                      Useful if you want to ensure you will have access to VMs.
         :type     ex_check_ssh_key:  ``bool``
 
-        :keyword  ex_scalable:  [Only apply to SlipStream applications]
+        :keyword  ex_scalable:  [Only applies to SlipStream applications]
         :type     ex_scalable:  True to start a scalable deployment. (default: False)
 
         :return:  The newly created node.
@@ -630,7 +651,7 @@ class SlipStreamNodeDriver(NodeDriver):
         :param    timeout:  How many seconds to wait before giving up. (default: 600)
         :type     timeout: ``int``
         
-        :param    ignore_abort: If False, raise an exception if the node has failed
+        :param    ignore_abort: If False, raise an exception if the node has failed (default: False)
         :type     ignore_abort: ``bool``
         
         :return:    The state that was reached or raise a LibcloudError if timeout
@@ -677,6 +698,23 @@ class SlipStreamNodeDriver(NodeDriver):
 
         return [self._virtual_machine_to_node(vm)
                 for vm in virtual_machines.json.get('virtualMachines', [])]
+
+    def ex_get_node_parameter(self, node, parameter_name, ignore_abort=True):
+        """
+        Get the value of a parameter for a node
+
+        :param    node:  The node from which to get the parameter
+        :type     node:  :class:`Node`
+
+        :param    parameter_name:  The name of the parameter to retrieve
+        :type     parameter_name:  `str`
+
+        :param    ignore_abort: If False, raise an exception if the node has failed (default: True)
+        :type     ignore_abort: ``bool``
+
+        """
+        return self.ss_api.get_deployment_parameter(node.id, parameter_name, 
+                                                    ignore_abort)
 
     def _state_to_node_state(self, state):
         return self.NODE_STATE_MAP.get(state.lower(),

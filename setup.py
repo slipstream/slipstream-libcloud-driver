@@ -11,7 +11,7 @@ with open('src/slipstream/libcloud/__init__.py', 'rb') as f:
         f.read().decode('utf-8')).group(1)))
 
 install_requires = [
-    'slipstream-api',
+    'slipstream-api>=0.9.1',
     'apache-libcloud==0.18.0',
 ]
 
