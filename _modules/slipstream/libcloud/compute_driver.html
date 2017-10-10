@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>slipstream.libcloud.compute_driver &mdash; SlipStream Libcloud driver 0.1.1 documentation</title>
+  <title>slipstream.libcloud.compute_driver &mdash; SlipStream Libcloud driver 0.1.3 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="SlipStream Libcloud driver 0.1.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="SlipStream Libcloud driver 0.1.3 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -229,10 +229,31 @@
 <span class="sd">    </span>
 <span class="sd">    # Print the WordPress URL</span>
 <span class="sd">    print node.extra.get(&#39;service_url&#39;)</span>
+
+
+<span class="sd"> Destroy a node (terminate a deployment)</span>
+<span class="sd"> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd"> ::</span>
+
+<span class="sd">    # Destroy the node</span>
+<span class="sd">    ss.destroy_node(node)</span>
 <span class="sd">    </span>
 
 <span class="sd"> API documentation</span>
 <span class="sd"> -----------------</span>
+
+<span class="sd"> .. note:: Returned nodes will not contain IP addresses.</span>
+<span class="sd">    To obtain them, please use the function ``ex_list_virtual_machines``</span>
+<span class="sd">    or ``ex_get_node_parameter`` as shown below:</span>
+<span class="sd">    ::</span>
+
+<span class="sd">        # Get the machine:hostname parameter of the node</span>
+<span class="sd">        ip = ss.ex_get_node_parameter(node, &#39;machine:hostname&#39;)</span>
+
+<span class="sd">        # List all virtual machines for a node</span>
+<span class="sd">        vms = ss.ex_list_virtual_machines(node=node)</span>
+<span class="sd">        # List of IPs per VM</span>
+<span class="sd">        ips = [vm.public_ips + vm.private_ips for vm in vms]</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -393,12 +414,12 @@
 <span class="sd">        :return:    List of node objects</span>
 <span class="sd">        :rtype:     ``list`` of :class:`Node`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">deployments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">list_deployments</span><span class="p">()</span>
+        <span class="n">deployments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">list_deployments</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_deployment_to_node</span><span class="p">(</span><span class="n">depl</span><span class="p">)</span> <span class="k">for</span> <span class="n">depl</span> <span class="ow">in</span> <span class="n">deployments</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="SlipStreamNodeDriver.list_sizes"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_sizes">[docs]</a>    <span class="k">def</span> <span class="nf">list_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        List Sizes (SlipStream service offers)</span>
+<span class="sd">        List Sizes (SlipStream service offers)list_virt</span>
 
 <span class="sd">        :param    location:  Return only sizes for the specified location</span>
 <span class="sd">        :type     location:  :class:`NodeLocation`</span>
@@ -462,21 +483,21 @@
 <span class="sd">                           a global parameter use &quot;&lt;parametername&gt;&quot; as the key.</span>
 <span class="sd">        :type     ex_parameters:  ``dict``</span>
 
-<span class="sd">        :keyword  ex_keep_running:  [Only apply to SlipStream applications] </span>
+<span class="sd">        :keyword  ex_keep_running:  [Only applies to SlipStream applications] </span>
 <span class="sd">                                    Define when to terminate or not a deployment </span>
 <span class="sd">                                    when it reach the &#39;Ready&#39; state. </span>
 <span class="sd">                                    If scalable is set to True, this value is ignored </span>
 <span class="sd">                                    and it will behave as if it was set to &#39;always&#39;.</span>
 <span class="sd">        :type     ex_keep_running:  &#39;always&#39; or &#39;never&#39; or &#39;on-success&#39; or &#39;on-error&#39;</span>
 
-<span class="sd">        :keyword  ex_multiplicity:  [Only apply to SlipStream applications]</span>
+<span class="sd">        :keyword  ex_multiplicity:  [Only applies to SlipStream applications]</span>
 <span class="sd">                                    A dict to specify how many instances to start </span>
 <span class="sd">                                    per application&#39;s node.</span>
-<span class="sd">                                    Application&#39;s sodenames as keys and number of </span>
+<span class="sd">                                    Application&#39;s nodenames as keys and number of </span>
 <span class="sd">                                    instances to start as values.</span>
 <span class="sd">        :type     ex_multiplicity:  ``dict``</span>
 
-<span class="sd">        :keyword  ex_tolerate_failures:  [Only apply to SlipStream applications]</span>
+<span class="sd">        :keyword  ex_tolerate_failures:  [Only applies to SlipStream applications]</span>
 <span class="sd">                                         A dict to specify how many failures to tolerate</span>
 <span class="sd">                                         per application&#39;s node.</span>
 <span class="sd">                                         Nodenames as keys and number of failure to </span>
@@ -488,7 +509,7 @@
 <span class="sd">                                     Useful if you want to ensure you will have access to VMs.</span>
 <span class="sd">        :type     ex_check_ssh_key:  ``bool``</span>
 
-<span class="sd">        :keyword  ex_scalable:  [Only apply to SlipStream applications]</span>
+<span class="sd">        :keyword  ex_scalable:  [Only applies to SlipStream applications]</span>
 <span class="sd">        :type     ex_scalable:  True to start a scalable deployment. (default: False)</span>
 
 <span class="sd">        :return:  The newly created node.</span>
@@ -523,7 +544,7 @@
         <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;application&#39;</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">app_node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_application_nodes</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-                    <span class="n">node_params</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">element_node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="n">node_params</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">app_node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span>
                     <span class="k">if</span> <span class="s1">&#39;service-offer&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">node_params</span><span class="p">:</span>
                         <span class="n">node_params</span><span class="p">[</span><span class="s1">&#39;service-offer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span><span class="o">.</span><span class="n">id</span>
             <span class="k">else</span><span class="p">:</span>
@@ -743,7 +764,7 @@
 <span class="sd">        :param    timeout:  How many seconds to wait before giving up. (default: 600)</span>
 <span class="sd">        :type     timeout: ``int``</span>
 <span class="sd">        </span>
-<span class="sd">        :param    ignore_abort: If False, raise an exception if the node has failed</span>
+<span class="sd">        :param    ignore_abort: If False, raise an exception if the node has failed (default: False)</span>
 <span class="sd">        :type     ignore_abort: ``bool``</span>
 <span class="sd">        </span>
 <span class="sd">        :return:    The state that was reached or raise a LibcloudError if timeout</span>
@@ -790,6 +811,23 @@
 
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_virtual_machine_to_node</span><span class="p">(</span><span class="n">vm</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">vm</span> <span class="ow">in</span> <span class="n">virtual_machines</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;virtualMachines&#39;</span><span class="p">,</span> <span class="p">[])]</span></div>
+
+<div class="viewcode-block" id="SlipStreamNodeDriver.ex_get_node_parameter"><a class="viewcode-back" href="../../../index.html#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_get_node_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">ex_get_node_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">parameter_name</span><span class="p">,</span> <span class="n">ignore_abort</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the value of a parameter for a node</span>
+
+<span class="sd">        :param    node:  The node from which to get the parameter</span>
+<span class="sd">        :type     node:  :class:`Node`</span>
+
+<span class="sd">        :param    parameter_name:  The name of the parameter to retrieve</span>
+<span class="sd">        :type     parameter_name:  `str`</span>
+
+<span class="sd">        :param    ignore_abort: If False, raise an exception if the node has failed (default: True)</span>
+<span class="sd">        :type     ignore_abort: ``bool``</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ss_api</span><span class="o">.</span><span class="n">get_deployment_parameter</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">parameter_name</span><span class="p">,</span> 
+                                                    <span class="n">ignore_abort</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_state_to_node_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">NODE_STATE_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
@@ -939,7 +977,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.1',
+            VERSION:'0.1.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

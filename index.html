@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to SlipStream Libcloud driver’s documentation! &mdash; SlipStream Libcloud driver 0.1.1 documentation</title>
+  <title>Welcome to SlipStream Libcloud driver’s documentation! &mdash; SlipStream Libcloud driver 0.1.3 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="SlipStream Libcloud driver 0.1.1 documentation" href="#"/> 
+    <link rel="top" title="SlipStream Libcloud driver 0.1.3 documentation" href="#"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -88,6 +88,7 @@
 <li><a class="reference internal" href="#list-base-images">List base Images</a></li>
 <li><a class="reference internal" href="#simple-node-creation-wordpress-server">Simple node creation (WordPress server)</a></li>
 <li><a class="reference internal" href="#complete-application-node-deployment-wordpress-server">Complete application (node) deployment (WordPress server)</a></li>
+<li><a class="reference internal" href="#destroy-a-node-terminate-a-deployment">Destroy a node (terminate a deployment)</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#api-documentation">API documentation</a></li>
@@ -235,9 +236,31 @@ libcloud get_driver function.:</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="destroy-a-node-terminate-a-deployment">
+<h3>Destroy a node (terminate a deployment)<a class="headerlink" href="#destroy-a-node-terminate-a-deployment" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Destroy the node</span>
+<span class="n">ss</span><span class="o">.</span><span class="n">destroy_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="api-documentation">
 <h2>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Returned nodes will not contain IP addresses.
+To obtain them, please use the function <code class="docutils literal"><span class="pre">ex_list_virtual_machines</span></code>
+or <code class="docutils literal"><span class="pre">ex_get_node_parameter</span></code> as shown below:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Get the machine:hostname parameter of the node</span>
+<span class="n">ip</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">ex_get_node_parameter</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;machine:hostname&#39;</span><span class="p">)</span>
+
+<span class="c1"># List all virtual machines for a node</span>
+<span class="n">vms</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">ex_list_virtual_machines</span><span class="p">(</span><span class="n">node</span><span class="o">=</span><span class="n">node</span><span class="p">)</span>
+<span class="c1"># List of IPs per VM</span>
+<span class="n">ips</span> <span class="o">=</span> <span class="p">[</span><span class="n">vm</span><span class="o">.</span><span class="n">public_ips</span> <span class="o">+</span> <span class="n">vm</span><span class="o">.</span><span class="n">private_ips</span> <span class="k">for</span> <span class="n">vm</span> <span class="ow">in</span> <span class="n">vms</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
 <dl class="class">
 <dt id="slipstream.libcloud.compute_driver.VirtualMachine">
 <em class="property">class </em><code class="descclassname">slipstream.libcloud.compute_driver.</code><code class="descname">VirtualMachine</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>state</em>, <em>public_ips</em>, <em>private_ips</em>, <em>driver</em>, <em>size=None</em>, <em>image=None</em>, <em>extra=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#VirtualMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.VirtualMachine" title="Permalink to this definition">¶</a></dt>
@@ -336,17 +359,17 @@ To redefine a parameter of a SlipStream application’s node
 use “&lt;nodename&gt;” as keys and dict of parameters as values.
 To redefine a parameter of a SlipStream component or 
 a global parameter use “&lt;parametername&gt;” as the key.</li>
-<li><strong>ex_keep_running</strong> (<em>'always'</em><em> or </em><em>'never'</em><em> or </em><em>'on-success'</em><em> or </em><em>'on-error'</em>) – [Only apply to SlipStream applications] 
+<li><strong>ex_keep_running</strong> (<em>'always'</em><em> or </em><em>'never'</em><em> or </em><em>'on-success'</em><em> or </em><em>'on-error'</em>) – [Only applies to SlipStream applications] 
 Define when to terminate or not a deployment 
 when it reach the ‘Ready’ state. 
 If scalable is set to True, this value is ignored 
 and it will behave as if it was set to ‘always’.</li>
-<li><strong>ex_multiplicity</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – [Only apply to SlipStream applications]
+<li><strong>ex_multiplicity</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – [Only applies to SlipStream applications]
 A dict to specify how many instances to start 
 per application’s node.
-Application’s sodenames as keys and number of 
+Application’s nodenames as keys and number of 
 instances to start as values.</li>
-<li><strong>ex_tolerate_failures</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – [Only apply to SlipStream applications]
+<li><strong>ex_tolerate_failures</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – [Only applies to SlipStream applications]
 A dict to specify how many failures to tolerate
 per application’s node.
 Nodenames as keys and number of failure to 
@@ -354,7 +377,7 @@ tolerate as values.</li>
 <li><strong>ex_check_ssh_key</strong> (<code class="docutils literal"><span class="pre">bool</span></code>) – Set it to True if you want the SlipStream server 
 to check if you have a public ssh key defined. 
 Useful if you want to ensure you will have access to VMs.</li>
-<li><strong>ex_scalable</strong> (<em>True to start a scalable deployment.</em><em> (</em><em>default: False</em><em>)</em>) – [Only apply to SlipStream applications]</li>
+<li><strong>ex_scalable</strong> (<em>True to start a scalable deployment.</em><em> (</em><em>default: False</em><em>)</em>) – [Only applies to SlipStream applications]</li>
 </ul>
 </td>
 </tr>
@@ -438,6 +461,25 @@ Destroy a node.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_get_node_parameter">
+<code class="descname">ex_get_node_parameter</code><span class="sig-paren">(</span><em>node</em>, <em>parameter_name</em>, <em>ignore_abort=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.ex_get_node_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_get_node_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the value of a parameter for a node</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>node</strong> (<code class="xref py py-class docutils literal"><span class="pre">Node</span></code>) – The node from which to get the parameter</li>
+<li><strong>parameter_name</strong> (<cite>str</cite>) – The name of the parameter to retrieve</li>
+<li><strong>ignore_abort</strong> (<code class="docutils literal"><span class="pre">bool</span></code>) – If False, raise an exception if the node has failed (default: True)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_list_virtual_machines">
 <code class="descname">ex_list_virtual_machines</code><span class="sig-paren">(</span><em>location=None</em>, <em>node=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.ex_list_virtual_machines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.ex_list_virtual_machines" title="Permalink to this definition">¶</a></dt>
 <dd><p>List Virtual Machines (SlipStream virtual machines)</p>
@@ -473,7 +515,7 @@ Destroy a node.</p>
 <li><strong>states</strong> (<code class="docutils literal"><span class="pre">str</span></code> or <code class="docutils literal"><span class="pre">list</span></code>) – The names of the states to wait for. (default: Ready)</li>
 <li><strong>wait_period</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – How many seconds to wait between each loop iteration. (default: 10)</li>
 <li><strong>timeout</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – How many seconds to wait before giving up. (default: 600)</li>
-<li><strong>ignore_abort</strong> (<code class="docutils literal"><span class="pre">bool</span></code>) – If False, raise an exception if the node has failed</li>
+<li><strong>ignore_abort</strong> (<code class="docutils literal"><span class="pre">bool</span></code>) – If False, raise an exception if the node has failed (default: False)</li>
 </ul>
 </td>
 </tr>
@@ -651,7 +693,7 @@ Setting this value to True can be expensive.</li>
 <dl class="method">
 <dt id="slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_sizes">
 <code class="descname">list_sizes</code><span class="sig-paren">(</span><em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slipstream/libcloud/compute_driver.html#SlipStreamNodeDriver.list_sizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slipstream.libcloud.compute_driver.SlipStreamNodeDriver.list_sizes" title="Permalink to this definition">¶</a></dt>
-<dd><p>List Sizes (SlipStream service offers)</p>
+<dd><p>List Sizes (SlipStream service offers)list_virt</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -709,7 +751,7 @@ Setting this value to True can be expensive.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.1',
+            VERSION:'0.1.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
